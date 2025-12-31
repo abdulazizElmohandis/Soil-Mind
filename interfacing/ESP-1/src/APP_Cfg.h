@@ -17,6 +17,7 @@
 #define SOILMOISTURE_ENABLED       STD_ON
 #define LM35_ENABLED               STD_OFF
 #define PWM_ENABLED                STD_OFF
+#define PUMP_ENABLED               STD_OFF
 #define DIMALARM_ENABLED           STD_OFF
 #define UART_ENABLED               STD_ON
 #define ChatApp_ENABLED            STD_ON
@@ -29,6 +30,7 @@
 #define SOILMOISTURE_DEBUG         STD_OFF
 #define LM35_DEBUG                 STD_OFF
 #define PWM_DEBUG                  STD_OFF
+#define PUMP_DEBUG                 STD_OFF
 #define DIMALARM_DEBUG             STD_OFF
 #define UART_DEBUG                 STD_ON
 #define ChatApp_DEBUG              STD_ON
@@ -43,12 +45,14 @@
 #define ALARM_LOW_LED       16
 #define ALARM_HIGH_LED      17
 #define DIMER_LED           9
+#define PUMP_PIN            26
 
 //General Configurations
 #define MAX_TEMP_RANGE                   150.0// Maximum temperature range for LM35 sensor in Celsius
 #define ALARM_LOW_THRESHOLD_PERCENTAGE   20.0 // Low Voltage threshold for DimAlarm in Celsius
 #define ALARM_HIGH_THRESHOLD_PERCENTAGE  80.0 // High Voltage threshold for DimAlarm in Celsius
 #define ADC_MAX_VALUE                    4095 // 12-bit ADC
+#define PUMP_PWM_FREQUENCY                20000 // 20 kHz PWM frequency for pump
 
 //UART1 Configuration
 #define UART1_BAUD_RATE 115200

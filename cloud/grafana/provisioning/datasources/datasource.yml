@@ -1,4 +1,4 @@
-apiVersion: 1
+# Grafana datasource provisioning for InfluxDB v2 (Smart Farm Cloud)apiVersion: 1
 
 datasources:
   - name: InfluxDB_v2

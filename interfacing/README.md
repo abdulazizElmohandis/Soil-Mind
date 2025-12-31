@@ -65,6 +65,18 @@ It provides a clean structure for handling communication, sensor readings, pin c
 - Adjustable frequency and duty cycle
 - Example usage for controlling LEDs or motors
 
+### WIFI (Wireless Fidelity)
+- Connect to WiFi networks with SSID and password authentication
+- Automatic reconnection with configurable reconnect interval
+- Connection status monitoring and callback support
+- Example: establishing internet connectivity for IoT applications
+
+### MQTT (Message Queuing Telemetry Transport)
+- Publish and subscribe to MQTT topics for messaging
+- Support for broker authentication (username/password)
+- Automatic reconnection handling and connection status monitoring
+- Example: sending sensor data to cloud platforms via MQTT broker
+
 
 ### Notes
 - Each module has its own header and source file.

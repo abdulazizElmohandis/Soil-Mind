@@ -17,6 +17,7 @@
 #define PWM_ENABLED                STD_OFF
 #define DIMALARM_ENABLED           STD_OFF
 #define UART_ENABLED               STD_ON
+#define SIM_800L_ENABLED           STD_ON
 #define ChatApp_ENABLED            STD_ON
 
 //Debug Definitions
@@ -26,8 +27,10 @@
 #define LM35_DEBUG                 STD_OFF
 #define PWM_DEBUG                  STD_OFF
 #define DIMALARM_DEBUG             STD_OFF
+#define SIM_800L_DEBUG   		   STD_ON
 #define UART_DEBUG                 STD_ON
 #define ChatApp_DEBUG              STD_ON
+
 
 //Pin Configuration
 #define POT_PIN             34
@@ -49,5 +52,14 @@
 #define UART1_TX_PIN    17
 #define UART1_RX_PIN    16
 #define UART1_FRAME_CFG SERIAL_8N1
+
+// SIM800L Configurations
+#if SIM_800L_DEBUG == STD_ON
+#define DEBUG_PRINTLN(var) Serial.println(var)
+#define DEBUG_PRINT(var) Serial.print(var)
+#else
+#define DEBUG_PRINTLN(var)
+#define DEBUG_PRINT(var)
+#endif
 
 #endif

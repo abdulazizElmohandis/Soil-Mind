@@ -16,7 +16,7 @@
 #include <ArduTFLite.h>
 
 // Uncomment if you have the model file:
-// #include "irrigation_model.h"
+#include "irrigation_model.h"
 
 #ifndef IRRIGATION_MODEL_H
 const unsigned char irrigation_model[] PROGMEM = {0};
@@ -29,21 +29,13 @@ const unsigned int irrigation_model_len = 0;
 #define LED_PIN             2
 #define RELAY_PIN           26
 
-constexpr int NUM_FEATURES = 8;
 constexpr int kTensorArenaSize = 8 * 1024;
 alignas(16) uint8_t tensorArena[kTensorArenaSize];
 
 bool modelReady = false;
 
 // Scaler parameters (from training)
-const float featureMeans[NUM_FEATURES] = {
-    29.599089f, 243.692406f, 29.599089f, 243.692406f,
-    0.0f, 0.0f, 243.692406f, 243.692406f
-};
-const float featureStds[NUM_FEATURES] = {
-    5.842685f, 76.176855f, 5.842685f, 76.176855f,
-    1.0f, 10.0f, 76.176855f, 76.176855f
-};
+
 
 // =============================================================================
 // SCENARIO DEFINITIONS

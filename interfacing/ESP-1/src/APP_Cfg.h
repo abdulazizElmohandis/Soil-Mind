@@ -4,20 +4,22 @@
 //General Definitions
 #define STD_ON 1
 #define STD_OFF 0
-#define WiFi    1
+#define USE_WIFI    1
 #define BLE     2
 #define _4G    3
 
 //Module definitions
 #define GPIO_ENABLED               STD_OFF
-#define COMMUNICATION_MODULE       WiFi
+#define COMMUNICATION_MODULE       USE_WIFI
 #define SENSORH_ENABLED            STD_OFF
 #define ADC_ENABLED                STD_ON
 #define POT_ENABLED                STD_ON
 #define SOILMOISTURE_ENABLED       STD_ON
 #define LM35_ENABLED               STD_OFF
 #define PWM_ENABLED                STD_OFF
-#define PUMP_ENABLED               STD_OFF
+#define PUMP_ENABLED               STD_ON
+#define WIFI_ENABLED               STD_ON
+#define MQTT_ENABLED               STD_ON
 #define DIMALARM_ENABLED           STD_OFF
 #define UART_ENABLED               STD_ON
 #define ChatApp_ENABLED            STD_ON
@@ -31,6 +33,8 @@
 #define LM35_DEBUG                 STD_OFF
 #define PWM_DEBUG                  STD_OFF
 #define PUMP_DEBUG                 STD_OFF
+#define WIFI_DEBUG                 STD_OFF
+#define MQTT_DEBUG                 STD_OFF
 #define DIMALARM_DEBUG             STD_OFF
 #define UART_DEBUG                 STD_ON
 #define ChatApp_DEBUG              STD_ON
@@ -59,5 +63,20 @@
 #define UART1_TX_PIN    17
 #define UART1_RX_PIN    16
 #define UART1_FRAME_CFG SERIAL_8N1
+
+//WiFi Configuration
+#define WIFI_SSID                  "MES"
+#define WIFI_PASSWORD              "@MES12345@"
+#define WIFI_RECONNECT_INTERVAL_MS 5000
+#define WIFI_CONNECT_TIMEOUT_MS    15000
+
+//MQTT Configuration
+#define MQTT_BROKER                "10.69.88.102"
+#define MQTT_PORT                   1883
+#define MQTT_USERNAME               ""  // Leave empty "" if no authentication needed
+#define MQTT_PASSWORD               ""  // Leave empty "" if no authentication needed
+#define MQTT_TOPIC_TELEMETRY        "farm/site1/nodeA/telemetry"
+#define MQTT_TOPIC_IRRIGATION_DECISION "farm/site1/nodeA/decision"
+#define MQTT_TOPIC_PUMP_CONTROL     "farm/site1/nodeA/pump/control"
 
 #endif

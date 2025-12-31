@@ -12,7 +12,9 @@
 #define GPIO_ENABLED               STD_OFF
 #define COMMUNICATION_MODULE       WiFi
 #define SENSORH_ENABLED            STD_OFF
-#define POT_ENABLED                STD_OFF
+#define ADC_ENABLED                STD_ON
+#define POT_ENABLED                STD_ON
+#define SOILMOISTURE_ENABLED       STD_ON
 #define LM35_ENABLED               STD_OFF
 #define PWM_ENABLED                STD_OFF
 #define DIMALARM_ENABLED           STD_OFF
@@ -22,7 +24,9 @@
 //Debug Definitions
 #define GPIO_DEBUG                 STD_OFF
 #define SENSORH_DEBUG              STD_OFF
+#define ADC_DEBUG                  STD_OFF
 #define POT_DEBUG                  STD_OFF
+#define SOILMOISTURE_DEBUG         STD_OFF
 #define LM35_DEBUG                 STD_OFF
 #define PWM_DEBUG                  STD_OFF
 #define DIMALARM_DEBUG             STD_OFF
@@ -31,8 +35,10 @@
 
 //Pin Configuration
 #define POT_PIN             34
+#define SOILMOISTURE_PIN    35
 #define LM35_PIN            0
 #define POT_RESOLUTION      12
+#define SOILMOISTURE_RESOLUTION 12
 #define LM35_RESOLUTION     10
 #define ALARM_LOW_LED       16
 #define ALARM_HIGH_LED      17

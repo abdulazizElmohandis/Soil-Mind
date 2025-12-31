@@ -1,9 +1,9 @@
 #include <Arduino.h>
 #include "../../APP_Cfg.h"
-#include "SensorH.h"
+#include "ADC.h"
 
 
-#if SENSORH_DEBUG == STD_ON
+#if ADC_DEBUG == STD_ON
 #define DEBUG_PRINTLN(var) Serial.println(var)
 #else
 #define DEBUG_PRINTLN(var)
@@ -11,9 +11,9 @@
 
 
 
-void SensorH_Init(SensorH_t* config) {
-#if SENSORH_ENABLED == STD_ON
-    DEBUG_PRINTLN("SensorH Initialized");
+void ADC_Init(ADC_t* config) {
+#if ADC_ENABLED == STD_ON
+    DEBUG_PRINTLN("ADC Initialized");
     
     DEBUG_PRINTLN("Channel: " + String(config->channel));
 
@@ -22,12 +22,13 @@ void SensorH_Init(SensorH_t* config) {
 #endif
 }
 
-uint32_t SensorH_ReadValue(uint8_t channel) {
-#if SENSORH_ENABLED == STD_ON
+uint32_t ADC_ReadValue(uint8_t channel) {
+#if ADC_ENABLED == STD_ON
     int rawValue = analogRead(channel);
     DEBUG_PRINTLN("Read Value from channel " + String(channel) + ": " + String(rawValue));
     return rawValue;
 #else
-    return -1.0; // Indicate that the sensor is disabled
+    return 0; // Indicate that the ADC is disabled
 #endif
 }
+

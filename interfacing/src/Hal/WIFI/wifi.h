@@ -7,7 +7,6 @@
 #include <Arduino.h>
 #include <WiFi.h>
 
-extern bool mqttInitialized ;
 
 
 typedef enum

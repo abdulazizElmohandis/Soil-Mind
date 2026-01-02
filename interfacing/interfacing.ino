@@ -4,7 +4,7 @@
 // TEST MODULES
 // ============================================================================
 // Uncomment the line below to enable MQTT testing
-// #include "src/App/MQTTTest/MQTTTest.h"
+#include "src/App/MQTTTest/MQTTTest.h"
 
 // ============================================================================
 // SETUP
@@ -16,7 +16,7 @@ void setup() {
   // TODO: Add your application initialization here
   
   // Uncomment to test MQTT (requires MQTTTest.h to be included above)
-  // MQTTTest_Setup();
+  MQTTTest_Setup();
 }
 
 // ============================================================================
@@ -26,5 +26,5 @@ void loop() {
   // TODO: Add your application main loop here
   
   // Uncomment to test MQTT (requires MQTTTest.h to be included above)
-  // MQTTTest_Loop();
+  MQTTTest_Loop();
 }

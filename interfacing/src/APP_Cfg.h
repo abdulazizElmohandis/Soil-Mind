@@ -24,7 +24,7 @@
 #define DIMALARM_ENABLED           STD_OFF
 #define UART_ENABLED               STD_ON
 #define ChatApp_ENABLED            STD_ON
-
+#define DHT11_ENABLED              STD_ON
 //Debug Definitions
 #define GPIO_DEBUG                 STD_OFF
 #define SENSORH_DEBUG              STD_OFF
@@ -39,6 +39,7 @@
 #define DIMALARM_DEBUG             STD_OFF
 #define UART_DEBUG                 STD_ON
 #define ChatApp_DEBUG              STD_ON
+#define DHT11_DEBUG                STD_ON
 
 //Pin Configuration
 #define POT_PIN             34
@@ -83,7 +84,9 @@
 
 // QUEUE Configuration
 #define Moisture_QUEUE_SIZE                 10
-// DHT 22 Configuration
-#define DHT22_1_PIN   5
+// DHT 11 Configuration
+#define DHT11_1_PIN   5
+#define Temperature_QUEUE_SIZE              10
+#define Humidity_QUEUE_SIZE                 10
 
 #endif

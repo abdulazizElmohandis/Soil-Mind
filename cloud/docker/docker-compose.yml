@@ -1,17 +1,18 @@
-version: "3.8"
+version: "3.9"
 
 services:
+
   mosquitto:
     image: eclipse-mosquitto:2
     container_name: mosquitto
     ports:
       - "1883:1883"
     volumes:
-      - ./mosquitto:/mosquitto/config
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
     restart: unless-stopped
 
   influxdb:
-    image: influxdb:2
+    image: influxdb:2.7
     container_name: influxdb
     ports:
       - "8086:8086"
@@ -20,30 +21,47 @@ services:
     environment:
       - DOCKER_INFLUXDB_INIT_MODE=setup
       - DOCKER_INFLUXDB_INIT_USERNAME=admin
-      - DOCKER_INFLUXDB_INIT_PASSWORD=admin12345
-      - DOCKER_INFLUXDB_INIT_ORG=soilmind
+      - DOCKER_INFLUXDB_INIT_PASSWORD=admin123
+      - DOCKER_INFLUXDB_INIT_ORG=soil-mind
       - DOCKER_INFLUXDB_INIT_BUCKET=smartfarm
-      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=soilmind-token-123
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=smartfarm-token
     restart: unless-stopped
 
   telegraf:
-    image: telegraf:1.29
+    image: telegraf:1.31
     container_name: telegraf
     depends_on:
-      - mosquitto
       - influxdb
+      - mosquitto
     volumes:
       - ../telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    environment:
+      - INFLUX_TOKEN=smartfarm-token
+      - INFLUX_ORG=soil-mind
+      - INFLUX_BUCKET=smartfarm
     restart: unless-stopped
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:12.3.1
     container_name: grafana
     ports:
       - "3000:3000"
+    depends_on:
+      - influxdb
     volumes:
       - grafana-data:/var/lib/grafana
-      - ../grafana/provisioning:/etc/grafana/provisioning
+    restart: unless-stopped
+
+  control-api:
+    build: ../api
+    container_name: control-api
+    depends_on:
+      - mosquitto
+    environment:
+      - MQTT_HOST=mosquitto
+      - MQTT_PORT=1883
+    ports:
+      - "8088:8088"
     restart: unless-stopped
 
 volumes:

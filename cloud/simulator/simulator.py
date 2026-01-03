@@ -1,183 +1,177 @@
 #!/usr/bin/env python3
+
 import os
+import sys
 import json
 import time
 import random
 import signal
-
+import logging
 import paho.mqtt.client as mqtt
 
-# ----------------------------
+# =========================
+# Logging (nohup-safe)
+# =========================
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] %(message)s',
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
+log = logging.getLogger()
+
+# =========================
 # Config
-# ----------------------------
+# =========================
 BROKER_HOST = os.getenv("MQTT_HOST", "127.0.0.1")
 BROKER_PORT = int(os.getenv("MQTT_PORT", "1883"))
 
 SITE = os.getenv("SITE", "site1")
 NODE = os.getenv("NODE", "nodeA")
 
-TELEMETRY_TOPIC = f"farm/{SITE}/{NODE}/telemetry"
-STATUS_TOPIC    = f"farm/{SITE}/{NODE}/status"
-CONTROL_TOPIC   = f"farm/{SITE}/{NODE}/control"
-CMD_TOPIC       = f"farm/{SITE}/{NODE}/cmd"
-
 PUBLISH_EVERY_SEC = float(os.getenv("PUBLISH_EVERY", "5"))
 
 MIN_TH = float(os.getenv("MIN_TH", "30"))
 MAX_TH = float(os.getenv("MAX_TH", "45"))
 
-last_irrigation_state = False
-manual_override = None     # None = AUTO, True/False = MANUAL
-manual_reason = None
+TELEMETRY_TOPIC = f"farm/{SITE}/{NODE}/telemetry"
+STATUS_TOPIC    = f"farm/{SITE}/{NODE}/status"
+CONTROL_TOPIC   = f"farm/{SITE}/{NODE}/control"
+CMD_TOPIC       = f"farm/{SITE}/{NODE}/cmd"
 
-_stop = False
+# None = AUTO, True = MANUAL ON, False = MANUAL OFF
+manual_override = None
+running = True
 
-# ----------------------------
-# Logic
-# ----------------------------
-def decide_irrigation(soil_moisture: float):
-    global last_irrigation_state
-
-    if soil_moisture < MIN_TH:
-        irrigation = True
-        decision = "ON"
-        reason = "moisture below min"
-    elif soil_moisture > MAX_TH:
-        irrigation = False
-        decision = "OFF"
-        reason = "moisture above max"
-    else:
-        irrigation = last_irrigation_state
-        decision = "HOLD"
-        reason = "moisture in range"
-
-    last_irrigation_state = irrigation
-    return irrigation, decision, reason
-
-# ----------------------------
+# =========================
 # MQTT callbacks
-# ----------------------------
-def on_connect(client, userdata, flags, reason_code, properties=None):
-    if reason_code == 0:
-        print("[MQTT] Connected")
-        client.subscribe(CMD_TOPIC, qos=1)
-        print(f"[MQTT] Subscribed to {CMD_TOPIC}")
-    else:
-        print(f"[MQTT] Connect failed: {reason_code}")
+# =========================
+def on_connect(client, userdata, flags, rc):
+    log.info("[MQTT] Connected")
+    client.subscribe(CMD_TOPIC)
+    publish_status(True)
 
 def on_message(client, userdata, msg):
-    global manual_override, manual_reason, last_irrigation_state
-
-    if msg.topic != CMD_TOPIC:
-        return
-
+    global manual_override
     try:
         payload = json.loads(msg.payload.decode())
+        cmd = str(payload.get("cmd", "")).upper()
+
+        if cmd == "ON":
+            manual_override = True
+            log.info("[CMD] Manual ON")
+        elif cmd == "OFF":
+            manual_override = False
+            log.info("[CMD] Manual OFF")
+        elif cmd == "AUTO":
+            manual_override = None
+            log.info("[CMD] Back to AUTO")
+        else:
+            log.info(f"[CMD] Unknown cmd={cmd} payload={payload}")
+
     except Exception as e:
-        print("[MQTT] Bad CMD payload:", e)
-        return
+        log.error(f"[MQTT] Bad command payload: {e}")
 
-    irrigation = bool(payload.get("irrigation", False))
-    manual_override = irrigation
-    manual_reason = payload.get("reason", "manual override")
+# =========================
+# Publishers
+# =========================
+def publish_status(online: bool):
+    payload = {"site": SITE, "node": NODE, "online": online}
+    client.publish(STATUS_TOPIC, json.dumps(payload), qos=1)
+    log.info(f"[STATUS] online={online}")
 
-    last_irrigation_state = irrigation
+def publish_telemetry():
+    telemetry = {
+        "site": SITE,
+        "node": NODE,
+        "soil_moisture": round(random.uniform(20, 70), 1),
+        "temperature": round(random.uniform(18, 35), 1),
+        "humidity": round(random.uniform(40, 90), 1),
+        "ph": round(random.uniform(5.5, 8.0), 2),
+        "n": round(random.uniform(5, 20), 1),
+        "p": round(random.uniform(5, 20), 1),
+        "k": round(random.uniform(5, 20), 1),
+    }
 
-    ack = {
+    client.publish(TELEMETRY_TOPIC, json.dumps(telemetry), qos=1)
+    log.info(f"[TELEMETRY] {telemetry}")
+    return telemetry
+
+def decide_and_publish_control(telemetry):
+    global manual_override
+
+    soil = float(telemetry["soil_moisture"])
+
+    # ✅ Manual mode holds decision ثابت (مش بيتدهس)
+    if manual_override is True:
+        irrigation = True
+        decision = "ON"
+        reason = "manual override"
+
+    elif manual_override is False:
+        irrigation = False
+        decision = "OFF"
+        reason = "manual override"
+
+    else:
+        # ✅ AUTO logic
+        if soil < MIN_TH:
+            irrigation = True
+            decision = "ON"
+            reason = "moisture below min"
+        elif soil > MAX_TH:
+            irrigation = False
+            decision = "OFF"
+            reason = "moisture above max"
+        else:
+            irrigation = False
+            decision = "HOLD"
+            reason = "moisture in range"
+
+    control = {
         "site": SITE,
         "node": NODE,
         "irrigation": irrigation,
-        "decision": "MANUAL",
-        "reason": manual_reason
+        "decision": decision,
+        "reason": reason,
+        "soil_moisture": soil,
+        "min_th": MIN_TH,
+        "max_th": MAX_TH
     }
 
-    client.publish(CONTROL_TOPIC, json.dumps(ack), qos=1, retain=False)
-    print("[MQTT] CMD received → ACK sent:", ack)
+    client.publish(CONTROL_TOPIC, json.dumps(control), qos=1)
+    log.info(f"[CONTROL] {control}")
 
-# ----------------------------
-def publish_status_online(client, online: bool):
-    payload = {"site": SITE, "node": NODE, "online": online}
-    client.publish(STATUS_TOPIC, json.dumps(payload), qos=1)
-    print(f"[MQTT] Status published: online={online}")
+# =========================
+# Graceful shutdown
+# =========================
+def shutdown(sig, frame):
+    global running
+    log.info("[SYSTEM] Shutting down...")
+    publish_status(False)
+    running = False
+    time.sleep(1)
+    sys.exit(0)
 
-def handle_exit(signum=None, frame=None):
-    global _stop
-    _stop = True
+signal.signal(signal.SIGINT, shutdown)
+signal.signal(signal.SIGTERM, shutdown)
 
-# ----------------------------
-def main():
-    global _stop
+# =========================
+# Main
+# =========================
+client = mqtt.Client()
+client.on_connect = on_connect
+client.on_message = on_message
 
-    try:
-        client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2,
-                             client_id=f"sim-{SITE}-{NODE}")
-    except Exception:
-        client = mqtt.Client(client_id=f"sim-{SITE}-{NODE}")
+log.info("[SIM] Connecting to MQTT broker...")
+client.connect(BROKER_HOST, BROKER_PORT, 60)
+client.loop_start()
 
-    client.on_connect = on_connect
-    client.on_message = on_message
+try:
+    while running:
+        telemetry = publish_telemetry()
+        decide_and_publish_control(telemetry)
+        time.sleep(PUBLISH_EVERY_SEC)
 
-    print("[SIM] Connecting to MQTT broker...")
-    client.connect(BROKER_HOST, BROKER_PORT, keepalive=60)
-    client.loop_start()
-
-    publish_status_online(client, True)
-
-    try:
-        while not _stop:
-            soil_moisture = round(random.uniform(20.0, 70.0), 1)
-            temperature   = round(random.uniform(18.0, 35.0), 1)
-            humidity      = round(random.uniform(40.0, 90.0), 1)
-            ph            = round(random.uniform(5.5, 8.0), 2)
-
-            telemetry_payload = {
-                "site": SITE,
-                "node": NODE,
-                "soil_moisture": soil_moisture,
-                "temperature": temperature,
-                "humidity": humidity,
-                "ph": ph
-            }
-
-            client.publish(TELEMETRY_TOPIC,
-                           json.dumps(telemetry_payload),
-                           qos=0)
-
-            if manual_override is None:
-                irrigation, decision, reason = decide_irrigation(soil_moisture)
-            else:
-                irrigation = manual_override
-                decision = "MANUAL"
-                reason = manual_reason
-
-            control_payload = {
-                "site": SITE,
-                "node": NODE,
-                "irrigation": irrigation,
-                "decision": decision,
-                "reason": reason,
-                "soil_moisture": soil_moisture,
-                "min_th": MIN_TH,
-                "max_th": MAX_TH
-            }
-
-            client.publish(CONTROL_TOPIC,
-                           json.dumps(control_payload),
-                           qos=1)
-
-            print("[SIM] Telemetry:", telemetry_payload)
-            print("[SIM] Control:", control_payload)
-
-            time.sleep(PUBLISH_EVERY_SEC)
-
-    finally:
-        publish_status_online(client, False)
-        time.sleep(0.5)
-        client.loop_stop()
-        client.disconnect()
-
-# ----------------------------
-if __name__ == "__main__":
-    signal.signal(signal.SIGINT, handle_exit)
-    signal.signal(signal.SIGTERM, handle_exit)
-    main()
+except Exception as e:
+    log.error(f"[SIM] Runtime error: {e}")
+    shutdown(None, None)

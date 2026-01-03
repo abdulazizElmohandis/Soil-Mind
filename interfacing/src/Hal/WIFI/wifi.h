@@ -7,6 +7,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
 
+extern bool mqttInitialized ;
 
 
 typedef enum
@@ -31,13 +32,11 @@ typedef struct
 } WIFI_Config_t;
 
 void WIFI_Init(const WIFI_Config_t *config);
-void wifi_loop(void);
 void WIFI_Process(void);
 WIFI_Status_t WIFI_GetStatus(void);
 bool WIFI_IsConnected(void);
 int WIFI_GetRSSI(void);
 uint32_t WIFI_GetIP_v4(void);
-void WIFI_Deinit(void);
 
 void WIFI_PrintConnectStatus(void);
 

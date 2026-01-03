@@ -7,10 +7,6 @@
 #include <freertos/task.h>
 #include <freertos/semphr.h>
 
-#if MQTT_ENABLED == STD_ON
-#include "../MQTT/MQTT.h"
-#endif
-
 #if WIFI_DEBUG == STD_ON
 #define DEBUG_PRINTLN(var) Serial.println(var)
 #else
@@ -24,37 +20,12 @@
 
 // RTOS synchronization
 static SemaphoreHandle_t g_wifiMutex = NULL;
-static SemaphoreHandle_t g_mqttInitMutex = NULL;
 static TaskHandle_t g_wifiTaskHandle = NULL;
 static volatile bool g_wifiTaskRunning = false;
 
-static volatile bool mqttInitialized = false;
-
-void onWifiConnected(void)
-{
-#if WIFI_ENABLED == STD_ON
-    DEBUG_PRINTLN("WiFi Connected! IP: " + WiFi.localIP().toString());
-    
-#if MQTT_ENABLED == STD_ON
-    if (xSemaphoreTake(g_mqttInitMutex, portMAX_DELAY) == pdTRUE) {
-        if (!mqttInitialized) {
-            const char* username = (strlen(MQTT_USERNAME) > 0) ? MQTT_USERNAME : NULL;
-            const char* password = (strlen(MQTT_PASSWORD) > 0) ? MQTT_PASSWORD : NULL;
-            MQTT_Init(MQTT_BROKER, MQTT_PORT, username, password);
-            mqttInitialized = true;
-        }
-        xSemaphoreGive(g_mqttInitMutex);
-    }
-#endif
-#endif
-}
-
-void onWifiDisconnected(void)
-{
-#if WIFI_ENABLED == STD_ON
-    DEBUG_PRINTLN("WiFi Disconnected!");
-#endif
-}
+// Callback functions implemented by application layer
+// extern void onWifiConnected(void);
+// extern void onWifiDisconnected(void);
 
 static WIFI_Config_t g_wifiCfg = {
     .ssid = WIFI_SSID,
@@ -223,15 +194,6 @@ void WIFI_Init(const WIFI_Config_t *config)
         return;
     }
 
-    g_mqttInitMutex = xSemaphoreCreateMutex();
-    if (g_mqttInitMutex == NULL) {
-        DEBUG_PRINTLN("MQTT Init Mutex creation failed!");
-        vSemaphoreDelete(g_wifiMutex);
-        g_wifiMutex = NULL;
-        g_wifiStatus = WIFI_STATUS_ERROR;
-        return;
-    }
-
     g_wifiCfg = *config;
     g_lastReconnectAttempt = xTaskGetTickCount();
     WIFI_StartConnection();
@@ -256,9 +218,7 @@ void WIFI_Init(const WIFI_Config_t *config)
         
         // Clean up synchronization primitives
         vSemaphoreDelete(g_wifiMutex);
-        vSemaphoreDelete(g_mqttInitMutex);
         g_wifiMutex = NULL;
-        g_mqttInitMutex = NULL;
         
         // Reset state
         g_wifiStatus = WIFI_STATUS_ERROR;
@@ -336,11 +296,6 @@ void WIFI_Deinit(void)
     if (g_wifiMutex != NULL) {
         vSemaphoreDelete(g_wifiMutex);
         g_wifiMutex = NULL;
-    }
-
-    if (g_mqttInitMutex != NULL) {
-        vSemaphoreDelete(g_mqttInitMutex);
-        g_mqttInitMutex = NULL;
     }
 
     WiFi.disconnect(true);

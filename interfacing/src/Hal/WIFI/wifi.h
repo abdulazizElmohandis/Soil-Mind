@@ -31,6 +31,7 @@ typedef struct
 } WIFI_Config_t;
 
 void WIFI_Init(const WIFI_Config_t *config);
+void wifi_loop(void);
 void WIFI_Process(void);
 WIFI_Status_t WIFI_GetStatus(void);
 bool WIFI_IsConnected(void);

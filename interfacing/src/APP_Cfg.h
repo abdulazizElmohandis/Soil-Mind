@@ -22,7 +22,8 @@
 #define MQTT_ENABLED               STD_ON
 #define DIMALARM_ENABLED           STD_OFF
 #define UART_ENABLED               STD_ON
-#define ChatApp_ENABLED            STD_ON
+#define ChatApp_ENABLED            STD_ON               
+#define DHT11_ENABLED              STD_ON
 
 //Debug Definitions
 #define GPIO_DEBUG                 STD_OFF
@@ -38,6 +39,7 @@
 #define DIMALARM_DEBUG             STD_OFF
 #define UART_DEBUG                 STD_ON
 #define ChatApp_DEBUG              STD_ON
+#define DHT11_DEBUG                STD_ON
 
 //Pin Configuration
 #define POT_PIN             34
@@ -80,6 +82,6 @@
 #define MQTT_TOPIC_PUMP_CONTROL     "farm/site1/nodeB/status"
 
 // DHT 22 Configuration
-#define DHT22_1_PIN   5
+#define DHT11_1_PIN   5
 
 #endif

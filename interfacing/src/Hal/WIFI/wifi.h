@@ -36,6 +36,7 @@ WIFI_Status_t WIFI_GetStatus(void);
 bool WIFI_IsConnected(void);
 int WIFI_GetRSSI(void);
 uint32_t WIFI_GetIP_v4(void);
+void WIFI_Deinit(void);
 
 void WIFI_PrintConnectStatus(void);
 

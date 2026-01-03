@@ -3,16 +3,16 @@
 
 /**
  * @brief Initialize MQTT Test module
- * 
- * Sets up WiFi and MQTT connections for testing
+ *
+ * Sets up WiFi and creates RTOS task for MQTT testing
  */
 void MQTTTest_Setup(void);
 
 /**
- * @brief Main loop for MQTT Test module
- * 
- * Processes WiFi/MQTT state machines and publishes test messages periodically
+ * @brief Deinitialize MQTT Test module
+ *
+ * Cleans up RTOS task and resources
  */
-void MQTTTest_Loop(void);
+void MQTTTest_Deinit(void);
 
 #endif // MQTT_TEST_H

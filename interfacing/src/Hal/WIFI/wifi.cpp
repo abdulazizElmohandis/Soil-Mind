@@ -13,15 +13,8 @@
 #define DEBUG_PRINTLN(var)
 #endif
 
-// Pin WiFi task to Core 0 (same as WiFi driver)
-#define WIFI_TASK_CORE 0
-#define WIFI_TASK_PRIORITY 3
-#define WIFI_TASK_STACK_SIZE 3072
-
 // RTOS synchronization
 static SemaphoreHandle_t g_wifiMutex = NULL;
-static TaskHandle_t g_wifiTaskHandle = NULL;
-static volatile bool g_wifiTaskRunning = false;
 
 // Callback functions implemented by application layer
 // extern void onWifiConnected(void);
@@ -63,121 +56,116 @@ static void WIFI_StartConnection(void)
 #endif
 }
 
-// RTOS Task for WiFi - Runs on Core 0
-static void WIFI_Task(void* parameter)
+// WiFi loop function - to be called periodically from appTask100ms
+void wifi_loop(void)
 {
 #if WIFI_ENABLED == STD_ON
-    DEBUG_PRINTLN("WiFi Task running on core: " + String(xPortGetCoreID()));
-    
-    TickType_t xLastWakeTime = xTaskGetTickCount();
-    const TickType_t xFrequency = pdMS_TO_TICKS(500); // 500ms cycle
-    TickType_t stabilityCheckTime = 0;
-    bool needStabilityCheck = false;
+    static TickType_t stabilityCheckTime = 0;
+    static bool needStabilityCheck = false;
 
-    for(;;)
+    TickType_t currentTick = xTaskGetTickCount();
+
+    // Debug: Print every 5 seconds that wifi_loop is being called
+    static TickType_t lastLoopDebug = 0;
+    if ((currentTick - lastLoopDebug) >= pdMS_TO_TICKS(5000)) {
+        DEBUG_PRINTLN("wifi_loop() called");
+        lastLoopDebug = currentTick;
+    }
+
+    if (xSemaphoreTake(g_wifiMutex, portMAX_DELAY) == pdTRUE)
     {
-        TickType_t currentTick = xTaskGetTickCount();
-        
-        if (xSemaphoreTake(g_wifiMutex, portMAX_DELAY) == pdTRUE)
+        wl_status_t st = WiFi.status();
+
+        switch (g_wifiStatus)
         {
-            wl_status_t st = WiFi.status();
-
-            switch (g_wifiStatus)
+        case WIFI_STATUS_CONNECTING:
+            if (st == WL_CONNECTED)
             {
-            case WIFI_STATUS_CONNECTING:
-                if (st == WL_CONNECTED)
-                {
-                    // Schedule stability check instead of blocking
-                    if (!needStabilityCheck) {
-                        needStabilityCheck = true;
-                        stabilityCheckTime = currentTick;
-                    }
-                    
-                    // Check if stability period has elapsed
-                    if (needStabilityCheck && 
-                        (currentTick - stabilityCheckTime >= WIFI_STABILITY_CHECK_TICKS))
-                    {
-                        if (WiFi.status() == WL_CONNECTED) {
-                            g_wifiStatus = WIFI_STATUS_CONNECTED;
-                            needStabilityCheck = false;
-                            DEBUG_PRINTLN("WiFi connected! IP: " + WiFi.localIP().toString());
-                            
-                            // Release mutex before callback
-                            xSemaphoreGive(g_wifiMutex);
-                            
-                            if (g_wifiCfg.on_connect)
-                                g_wifiCfg.on_connect();
-                            
-                            // Continue to next iteration
-                            vTaskDelayUntil(&xLastWakeTime, xFrequency);
-                            continue;
-                        } else {
-                            // Connection lost during stability check
-                            needStabilityCheck = false;
-                        }
-                    }
+                // Schedule stability check instead of blocking
+                if (!needStabilityCheck) {
+                    needStabilityCheck = true;
+                    stabilityCheckTime = currentTick;
                 }
-                else if (st == WL_CONNECT_FAILED || st == WL_NO_SSID_AVAIL)
-                {
-                    g_wifiStatus = WIFI_STATUS_DISCONNECTED;
-                    g_lastReconnectAttempt = currentTick;
-                    needStabilityCheck = false;
-                    DEBUG_PRINTLN("WiFi connection failed");
-                }
-                else if ((currentTick - g_connectStartTime) >= WIFI_CONNECT_TIMEOUT_TICKS)
-                {
-                    DEBUG_PRINTLN("WiFi connection timeout");
-                    WiFi.disconnect(false, false);
-                    g_wifiStatus = WIFI_STATUS_DISCONNECTED;
-                    g_lastReconnectAttempt = currentTick;
-                    needStabilityCheck = false;
-                }
-                break;
 
-            case WIFI_STATUS_CONNECTED:
-                if (st != WL_CONNECTED)
+                // Check if stability period has elapsed
+                if (needStabilityCheck &&
+                    (currentTick - stabilityCheckTime >= WIFI_STABILITY_CHECK_TICKS))
                 {
-                    g_wifiStatus = WIFI_STATUS_DISCONNECTED;
-                    DEBUG_PRINTLN("WiFi disconnected!");
-                    
-                    // Release mutex before callback
-                    xSemaphoreGive(g_wifiMutex);
-                    
-                    if (g_wifiCfg.on_disconnect)
-                        g_wifiCfg.on_disconnect();
-                    
-                    // Re-acquire mutex to update reconnect time
-                    if (xSemaphoreTake(g_wifiMutex, portMAX_DELAY) == pdTRUE) {
-                        g_lastReconnectAttempt = xTaskGetTickCount();
+                    if (WiFi.status() == WL_CONNECTED) {
+                        g_wifiStatus = WIFI_STATUS_CONNECTED;
+                        needStabilityCheck = false;
+                        DEBUG_PRINTLN("WiFi connected! IP: " + WiFi.localIP().toString());
+
+                        // Release mutex before callback
                         xSemaphoreGive(g_wifiMutex);
+
+                        if (g_wifiCfg.on_connect)
+                            g_wifiCfg.on_connect();
+
+                        return;
+                    } else {
+                        // Connection lost during stability check
+                        needStabilityCheck = false;
                     }
-                    
-                    vTaskDelayUntil(&xLastWakeTime, xFrequency);
-                    continue;
                 }
-                break;
-
-            case WIFI_STATUS_DISCONNECTED:
+            }
+            else if (st == WL_CONNECT_FAILED || st == WL_NO_SSID_AVAIL)
             {
-                TickType_t reconnectInterval = pdMS_TO_TICKS(g_wifiCfg.reconnect_interval_ms);
-                if ((currentTick - g_lastReconnectAttempt) >= reconnectInterval)
-                {
-                    DEBUG_PRINTLN("Attempting to reconnect WiFi...");
-                    WIFI_StartConnection();
-                    g_lastReconnectAttempt = currentTick;
+                g_wifiStatus = WIFI_STATUS_DISCONNECTED;
+                g_lastReconnectAttempt = currentTick;
+                needStabilityCheck = false;
+                DEBUG_PRINTLN("WiFi connection failed");
+            }
+            else if ((currentTick - g_connectStartTime) >= WIFI_CONNECT_TIMEOUT_TICKS)
+            {
+                DEBUG_PRINTLN("WiFi connection timeout");
+                WiFi.disconnect(false, false);
+                g_wifiStatus = WIFI_STATUS_DISCONNECTED;
+                g_lastReconnectAttempt = currentTick;
+                needStabilityCheck = false;
+            }
+            break;
+
+        case WIFI_STATUS_CONNECTED:
+            if (st != WL_CONNECTED)
+            {
+                g_wifiStatus = WIFI_STATUS_DISCONNECTED;
+                DEBUG_PRINTLN("WiFi disconnected!");
+
+                // Release mutex before callback
+                xSemaphoreGive(g_wifiMutex);
+
+                if (g_wifiCfg.on_disconnect)
+                    g_wifiCfg.on_disconnect();
+
+                // Re-acquire mutex to update reconnect time
+                if (xSemaphoreTake(g_wifiMutex, portMAX_DELAY) == pdTRUE) {
+                    g_lastReconnectAttempt = xTaskGetTickCount();
+                    xSemaphoreGive(g_wifiMutex);
                 }
-                break;
-            }
 
-            case WIFI_STATUS_ERROR:
-            default:
-                break;
+                return;
             }
+            break;
 
-            xSemaphoreGive(g_wifiMutex);
+        case WIFI_STATUS_DISCONNECTED:
+        {
+            TickType_t reconnectInterval = pdMS_TO_TICKS(g_wifiCfg.reconnect_interval_ms);
+            if ((currentTick - g_lastReconnectAttempt) >= reconnectInterval)
+            {
+                DEBUG_PRINTLN("Attempting to reconnect WiFi...");
+                WIFI_StartConnection();
+                g_lastReconnectAttempt = currentTick;
+            }
+            break;
         }
-        
-        vTaskDelayUntil(&xLastWakeTime, xFrequency);
+
+        case WIFI_STATUS_ERROR:
+        default:
+            break;
+        }
+
+        xSemaphoreGive(g_wifiMutex);
     }
 #endif
 }
@@ -186,7 +174,7 @@ void WIFI_Init(const WIFI_Config_t *config)
 {
 #if WIFI_ENABLED == STD_ON
     DEBUG_PRINTLN("WiFi Initializing");
-    
+
     g_wifiMutex = xSemaphoreCreateMutex();
     if (g_wifiMutex == NULL) {
         DEBUG_PRINTLN("WiFi Mutex creation failed!");
@@ -198,37 +186,7 @@ void WIFI_Init(const WIFI_Config_t *config)
     g_lastReconnectAttempt = xTaskGetTickCount();
     WIFI_StartConnection();
 
-    // Create WiFi task PINNED TO CORE 0
-    BaseType_t taskCreated = xTaskCreatePinnedToCore(
-        WIFI_Task,              // Task function
-        "WIFI_Task",            // Task name
-        WIFI_TASK_STACK_SIZE,   // Stack size
-        NULL,                   // Parameters
-        WIFI_TASK_PRIORITY,     // Priority (higher than MQTT)
-        &g_wifiTaskHandle,      // Task handle
-        WIFI_TASK_CORE          // Core 0 - Network operations
-    );
-
-    if (taskCreated != pdPASS) {
-        DEBUG_PRINTLN("WiFi Task creation failed!");
-        
-        // Stop WiFi hardware before cleanup
-        WiFi.disconnect(true);  // true = turn off WiFi radio
-        WiFi.mode(WIFI_OFF);
-        
-        // Clean up synchronization primitives
-        vSemaphoreDelete(g_wifiMutex);
-        g_wifiMutex = NULL;
-        
-        // Reset state
-        g_wifiStatus = WIFI_STATUS_ERROR;
-        g_wifiTaskRunning = false;
-        
-        return;
-    }
-
-    g_wifiTaskRunning = true;
-    DEBUG_PRINTLN("WiFi Task created on Core " + String(WIFI_TASK_CORE));
+    DEBUG_PRINTLN("WiFi initialized - call wifi_loop() periodically");
 #endif
 }
 
@@ -286,20 +244,12 @@ int WIFI_GetRSSI(void)
 void WIFI_Deinit(void)
 {
 #if WIFI_ENABLED == STD_ON
-    if (!g_wifiTaskRunning) return;
-
-    if (g_wifiTaskHandle != NULL) {
-        vTaskDelete(g_wifiTaskHandle);
-        g_wifiTaskHandle = NULL;
-    }
-
     if (g_wifiMutex != NULL) {
         vSemaphoreDelete(g_wifiMutex);
         g_wifiMutex = NULL;
     }
 
     WiFi.disconnect(true);
-    g_wifiTaskRunning = false;
     DEBUG_PRINTLN("WiFi Deinitialized");
 #endif
 }

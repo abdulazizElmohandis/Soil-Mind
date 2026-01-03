@@ -13,6 +13,8 @@ typedef enum {
 // Communicates with MQTT Core only through public APIs
 
 void MQTT_APP_Init(void);
+void MQTT_APP_Setup(void);
+void mqtt_main(void);
 
 void MQTT_APP_SubscribeTopics(void);
 void MQTT_APP_PublishTelemetry(void);

@@ -23,7 +23,7 @@
 #define DIMALARM_ENABLED           STD_OFF
 #define UART_ENABLED               STD_ON
 #define ChatApp_ENABLED            STD_ON
-
+#define DHT11_ENABLED              STD_ON
 //Debug Definitions
 #define GPIO_DEBUG                 STD_OFF
 #define SENSORH_DEBUG              STD_OFF
@@ -33,11 +33,12 @@
 #define LM35_DEBUG                 STD_OFF
 #define PWM_DEBUG                  STD_OFF
 #define PUMP_DEBUG                 STD_OFF
-#define WIFI_DEBUG                 STD_OFF
-#define MQTT_DEBUG                 STD_OFF
+#define WIFI_DEBUG                 STD_ON
+#define MQTT_DEBUG                 STD_ON
 #define DIMALARM_DEBUG             STD_OFF
 #define UART_DEBUG                 STD_ON
 #define ChatApp_DEBUG              STD_ON
+#define DHT11_DEBUG                STD_ON
 
 //Pin Configuration
 #define POT_PIN             34
@@ -71,12 +72,20 @@
 #define WIFI_CONNECT_TIMEOUT_MS    15000
 
 //MQTT Configuration
-#define MQTT_BROKER                "10.69.88.102"
+#define MQTT_BROKER                "54.234.129.218"
 #define MQTT_PORT                   1883
 #define MQTT_USERNAME               ""  // Leave empty "" if no authentication needed
 #define MQTT_PASSWORD               ""  // Leave empty "" if no authentication needed
 #define MQTT_TOPIC_TELEMETRY        "farm/site1/nodeA/telemetry"
 #define MQTT_TOPIC_IRRIGATION_DECISION "farm/site1/nodeA/decision"
-#define MQTT_TOPIC_PUMP_CONTROL     "farm/site1/nodeA/pump/control"
+#define MQTT_TOPIC_PUMP_CONTROL     "farm/site1/nodeB/status"
+
+
+// QUEUE Configuration
+#define Moisture_QUEUE_SIZE                 10
+// DHT 11 Configuration
+#define DHT11_1_PIN   5
+#define Temperature_QUEUE_SIZE              10
+#define Humidity_QUEUE_SIZE                 10
 
 #endif

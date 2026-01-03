@@ -79,6 +79,9 @@
 #define MQTT_TOPIC_IRRIGATION_DECISION "farm/site1/nodeA/decision"
 #define MQTT_TOPIC_PUMP_CONTROL     "farm/site1/nodeB/status"
 
+
+// QUEUE Configuration
+#define Moisture_QUEUE_SIZE                 10
 // DHT 22 Configuration
 #define DHT22_1_PIN   5
 

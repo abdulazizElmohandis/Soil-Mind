@@ -9,11 +9,7 @@ typedef struct{
     ADC_t adcConfig;
 }PH_t;
 
-typedef enum
-{
-    queue_ok,
-    queue_empty,
-}queue_t;
+
 
 void PHSensor_init(void);
 

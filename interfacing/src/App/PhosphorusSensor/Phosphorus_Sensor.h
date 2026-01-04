@@ -13,11 +13,6 @@ typedef struct{
     ADC_t adcConfig;
 }Phosphorus_t;
 
-typedef enum
-{
-    queue_ok,
-    queue_empty,
-}queue_t;
 
 void PhosphorusSensor_init(void);
 

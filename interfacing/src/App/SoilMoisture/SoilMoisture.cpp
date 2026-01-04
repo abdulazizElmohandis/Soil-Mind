@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include "../../APP_Cfg.h"
-#include "../../HAL/ADC/ADC.h"
+#include "../../Hal/ADC/ADC.h"
 #include "SoilMoisture.h"
 
 static uint8_t Soil_Moisture_Queue[Moisture_QUEUE_SIZE];
@@ -15,19 +15,16 @@ static uint8_t count;
 
 static void inq(int data)
 {
-    if (count < Moisture_QUEUE_SIZE)
+    if (in == Moisture_QUEUE_SIZE)
     {
-        if (in == Moisture_QUEUE_SIZE)
-        {
-            in = 0;
-        }
-        else
-        {
-            ;
-        }
-        Soil_Moisture_Queue[in++] = data;
-        count++;
+        in = 0;
     }
+    else
+    {
+        ;
+    }
+    Soil_Moisture_Queue[in++] = data;
+    count++;
 }
 
 static queue_t deq(int *data)

@@ -12,20 +12,15 @@
 
 typedef struct
 {
-    uint8_t data_pin;      
+    uint8_t data_pin;
 } DHT11Cfg_t;
 
-typedef enum
-{
-    queue_ok,
-    queue_empty,
-}queue_t;
-
-
+void DHT11_main(void);
 void DHT11_init(void);
 void DHT11_readTemperature(uint8_t sensorIndex);
 float DHT11_readHumidity(uint8_t sensorIndex);
 bool DHT11_read(uint8_t sensorIndex, float *temperature, float *humidity);
-
+void DHT11_GetHumidity(int *humidity);
+void DHT11_GetTemperature(int *temperature);
 
 #endif // DHT11_H

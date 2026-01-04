@@ -102,6 +102,14 @@
 
 // QUEUE Configuration
 #define Moisture_QUEUE_SIZE                 10
+
+// Common Types
+typedef enum
+{
+    queue_ok,
+    queue_empty,
+}queue_t;
+
 // DHT 11 Configuration
 #define DHT11_1_PIN   5
 #define DHT22_1_PIN   5

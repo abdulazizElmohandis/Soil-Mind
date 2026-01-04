@@ -1,7 +1,7 @@
 #ifndef SOILMOISTURE_H
 #define SOILMOISTURE_H
 #include <stdint.h>
-#include "../../HAL/ADC/ADC.h"
+#include "../../Hal/ADC/ADC.h"
 
 
 typedef struct{
@@ -22,6 +22,8 @@ typedef enum
 void SoilMoisture_Init(void);
 
 void SoilMoisture_main(void);
+
+void SoilMoisture_getMoisture(uint8_t *moisture);
 
 
 #endif

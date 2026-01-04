@@ -15,16 +15,19 @@ static uint8_t count;
 
 static void inq(int data)
 {
-    if (in == Moisture_QUEUE_SIZE)
+    if (count < Moisture_QUEUE_SIZE)
     {
-        in = 0;
+        if (in == Moisture_QUEUE_SIZE)
+        {
+            in = 0;
+        }
+        else
+        {
+            ;
+        }
+        Soil_Moisture_Queue[in++] = data;
+        count++;
     }
-    else
-    {
-        ;
-    }
-    Soil_Moisture_Queue[in++] = data;
-    count++;
 }
 
 static queue_t deq(int *data)

@@ -3,6 +3,8 @@
 #include <freertos/task.h>
 #include "src/Hal/WIFI/wifi.h"
 #include "src/App/MQTT_APP/mqtt_app.h"
+#include "src/App/SoilMoisture/SoilMoisture.h"
+#include "src/App/DHT/DHT11.h"
 
 // ============================================================================
 // APP TASK CONFIGURATION
@@ -55,6 +57,10 @@ static void apptask_400ms(void* parameter)
 
     for(;;)
     {
+        // Call sensor mains
+        SoilMoisture_main();
+        DHT11_main();
+
         // Call MQTT main
         mqtt_main();
 
@@ -70,6 +76,10 @@ void setup() {
   Serial.begin(115200);
   delay(1000);
   // TODO: Add your application initialization here
+
+  // Initialize sensors
+  SoilMoisture_Init();
+  DHT11_init();
 
   // Initialize MQTT APP
   MQTT_APP_Setup();

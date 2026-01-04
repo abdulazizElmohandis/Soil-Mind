@@ -15,16 +15,19 @@ static uint8_t countH;
 #endif
 static void inqT(int data)
 {
-    if (inT == Temperature_QUEUE_SIZE)
+    if (countT < Temperature_QUEUE_SIZE)
     {
-        inT = 0;
+        if (inT == Temperature_QUEUE_SIZE)
+        {
+            inT = 0;
+        }
+        else
+        {
+            ;
+        }
+        Temperature[inT++] = data;
+        countT++;
     }
-    else
-    {
-        ;
-    }
-    Temperature[inT++] = data;
-    countT++;
 }
 
 static queue_t deqT(int *data)
@@ -53,16 +56,19 @@ static queue_t deqT(int *data)
 
 static void inqH(int data)
 {
-    if (inH == Humidity_QUEUE_SIZE)
+    if (countH < Humidity_QUEUE_SIZE)
     {
-        inH = 0;
+        if (inH == Humidity_QUEUE_SIZE)
+        {
+            inH = 0;
+        }
+        else
+        {
+            ;
+        }
+        Humidity[inH++] = data;
+        countH++;
     }
-    else
-    {
-        ;
-    }
-    Humidity[inH++] = data;
-    countH++;
 }
 
 static queue_t deqH(int *data)

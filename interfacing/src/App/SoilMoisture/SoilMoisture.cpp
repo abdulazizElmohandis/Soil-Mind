@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include "../../APP_Cfg.h"
-#include "../../HAL/ADC/ADC.h"
+#include "../../Hal/ADC/ADC.h"
 #include "SoilMoisture.h"
 
 static uint8_t Soil_Moisture_Queue[Moisture_QUEUE_SIZE];

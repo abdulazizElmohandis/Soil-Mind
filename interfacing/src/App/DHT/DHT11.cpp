@@ -1,10 +1,11 @@
 #include "DHT11.h"
 #include "../../APP_Cfg.h"
-static uint8_t Temperature[Temperature_QUEUE_SIZE];
+#include "../SoilMoisture/SoilMoisture.h"
+static float Temperature[Temperature_QUEUE_SIZE];
 static uint8_t inT;
 static uint8_t outT;
 static uint8_t countT;
-static uint8_t Humidity[Humidity_QUEUE_SIZE];
+static float Humidity[Humidity_QUEUE_SIZE];
 static uint8_t inH;
 static uint8_t outH;
 static uint8_t countH;
@@ -13,7 +14,7 @@ static uint8_t countH;
 #else
 #define DEBUG_PRINTLN(var)
 #endif
-static void inqT(int data)
+static void inqT(float data)
 {
     if (countT < Temperature_QUEUE_SIZE)
     {
@@ -30,7 +31,7 @@ static void inqT(int data)
     }
 }
 
-static queue_t deqT(int *data)
+static queue_t deqT(float *data)
 {
     queue_t status = queue_ok;
     if (outT == Temperature_QUEUE_SIZE)
@@ -54,7 +55,7 @@ static queue_t deqT(int *data)
     return status;
 }
 
-static void inqH(int data)
+static void inqH(float data)
 {
     if (countH < Humidity_QUEUE_SIZE)
     {
@@ -71,7 +72,7 @@ static void inqH(int data)
     }
 }
 
-static queue_t deqH(int *data)
+static queue_t deqH(float *data)
 {
     queue_t status = queue_ok;
     if (outH == Humidity_QUEUE_SIZE)
@@ -141,21 +142,21 @@ void DHT11_main(void)
 #endif
 }
 
-void DHT11_GetTemperature(int *temperature)
+void DHT11_GetTemperature(float *temperature)
 {
 #if DHT11_ENABLED == STD_ON
     if (deqT(temperature) == queue_empty)
     {
-        *temperature = 0; // Indicate that the queue is empty
+        *temperature = 0.0f; // Indicate that the queue is empty
     }
 #endif
 }
-void DHT11_GetHumidity(int *humidity)
+void DHT11_GetHumidity(float *humidity)
 {
     #if DHT11_ENABLED == STD_ON
     if (deqH(humidity) == queue_empty)
     {
-        *humidity = 0; // Indicate that the queue is empty
+        *humidity = 0.0f; // Indicate that the queue is empty
     }
 #endif
 }

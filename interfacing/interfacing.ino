@@ -1,4 +1,4 @@
-#include <Arduino.h>
+/*#include <Arduino.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include "src/Hal/WIFI/wifi.h"
@@ -9,6 +9,10 @@
 // ============================================================================
 // APP TASK CONFIGURATION
 // ============================================================================
+
+// Uncomment the line below to enable MQTT testing
+
+=======
 #define APP_TASK_CORE 0
 #define APP_TASK_PRIORITY 3  // Higher than MQTT (2)
 #define APP_TASK_STACK_SIZE 3072
@@ -69,10 +73,14 @@ static void apptask_400ms(void* parameter)
     }
 }
 
+
 // ============================================================================
 // SETUP
 // ============================================================================
 void setup() {
+<<<<<<< HEAD
+  
+=======
   Serial.begin(115200);
   delay(1000);
   // TODO: Add your application initialization here
@@ -92,7 +100,7 @@ void setup() {
     APP_TASK_STACK_SIZE,       // Stack size
     NULL,                      // Parameters
     APP_TASK_PRIORITY,         // Priority (higher than MQTT)
-    &appTaskHandle,            // Task handle
+    appTaskHandle,            // Task handle
     APP_TASK_CORE              // Core 0
   );
 
@@ -110,7 +118,7 @@ void setup() {
     APP_TASK_STACK_SIZE,       // Stack size
     NULL,                      // Parameters
     2,                         // Priority (lower than WiFi)
-    &mqttTaskHandle,           // Task handle
+    mqttTaskHandle,           // Task handle
     1                          // Core 1
   );
 
@@ -126,6 +134,8 @@ void setup() {
 // ============================================================================
 void loop() {
   // TODO: Add your application main loop here
+  
+  // Uncomment to test MQTT (requires MQTTTest.h to be included above)
 
   // MQTT RTOS Test runs automatically in background task
   // No need to call MQTTTest_Loop() anymore
@@ -166,3 +176,11 @@ void cleanup() {
   // TODO: Add MQTT_APP_Deinit if needed
 }
 */
+void setup()
+{
+
+}
+void loop()
+{
+
+}

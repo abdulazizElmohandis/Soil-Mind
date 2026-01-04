@@ -1,5 +1,5 @@
-#ifndef PHOSPHORUS_SENSOR_H
-#define PHOSPHORUS_SENSOR_H
+#ifndef POTASSIUM_SENSOR_H
+#define POTASSIUM_SENSOR_H
 #include <Arduino.h>
 #include <stdint.h>
 #include "../../APP_Cfg.h"
@@ -11,7 +11,7 @@
 
 typedef struct{
     ADC_t adcConfig;
-}Phosphorus_t;
+}Potassium_t;
 
 typedef enum
 {
@@ -19,12 +19,12 @@ typedef enum
     queue_empty,
 }queue_t;
 
-void PhosphorusSensor_init(void);
+void PotassiumSensor_init(void);
 
-void PhosphorusSensor_main(void);
+void PotassiumSensor_main(void);
 
 
-void PhosphorusSensor_getvalue(int *value);
+void PotassiumSensor_getvalue(int *value);
 
 
 

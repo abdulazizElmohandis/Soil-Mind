@@ -10,6 +10,7 @@
 #define Zero 0
 #define ADC_MAX 4095
 
+
 //Module definitions
 #define GPIO_ENABLED               STD_OFF
 #define COMMUNICATION_MODULE       WIFI_MODULE
@@ -78,7 +79,7 @@
 #define WIFI_CONNECT_TIMEOUT_MS    15000
 
 //MQTT Configuration
-#define MQTT_BROKER                "54.234.129.218"
+#define MQTT_BROKER                "10.17.84.102"
 #define MQTT_PORT                   1883
 #define MQTT_USERNAME               ""  // Leave empty "" if no authentication needed
 #define MQTT_PASSWORD               ""  // Leave empty "" if no authentication needed

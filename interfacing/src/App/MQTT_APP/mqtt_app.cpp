@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include "../../Hal/MQTT/mqtt_core.h"
 #include "../../Hal/SoilMoisture/SoilMoisture.h"
+#include "../../App/DHT/DHT11.h"
 #include "../../Hal/Pump/Pump.h"
 #include "../../Hal/WIFI/wifi.h"
 #include "../../APP_Cfg.h"
@@ -14,9 +15,8 @@
 
 // MQTT Topics - Application-specific, defined here in the app module
 #define MQTT_TOPIC_TELEMETRY        "farm/site1/nodeA/telemetry"
-#define MQTT_TOPIC_IRRIGATION_DECISION "farm/site1/nodeA/decision"
-#define MQTT_TOPIC_PUMP_CONTROL     "farm/site1/nodeB/status"
-#define MQTT_TOPIC_COMMAND          "farm/site1/nodeA/command"
+#define MQTT_TOPIC_STATUS           "farm/site1/nodeA/status"
+#define MQTT_TOPIC_COMMAND          "farm/site1/nodeA/cmd"
 
 // Static variables for application state
 static unsigned long lastTelemetryTime = 0;
@@ -31,6 +31,7 @@ static int decisionCount = 0;
 
 // Forward declarations
 static void publishSoilMoistureTelemetry(void);
+static void publishHeartbeat(void);
 static void publishDummyData(void);
 static void publishDummyDecision(void);
 
@@ -41,7 +42,6 @@ void MQTT_APP_Init(void)
     DEBUG_PRINTLN("MQTT Application Initializing");
 
     // Register message handlers for subscribed topics
-    MQTT_RegisterHandler(MQTT_TOPIC_COMMAND, MQTT_APP_OnCommand);
     MQTT_RegisterHandler(MQTT_TOPIC_PUMP_CONTROL, MQTT_APP_OnPumpCommand);
 
     DEBUG_PRINTLN("MQTT Application initialized successfully");
@@ -52,7 +52,6 @@ void MQTT_APP_Init(void)
 void MQTT_APP_SubscribeTopics(void)
 {
 #if MQTT_ENABLED == STD_ON
-    MQTT_Subscribe(MQTT_TOPIC_COMMAND, 0);
     MQTT_Subscribe(MQTT_TOPIC_PUMP_CONTROL, 0);
 
     DEBUG_PRINTLN("MQTT Application topics subscribed");
@@ -62,7 +61,7 @@ void MQTT_APP_SubscribeTopics(void)
 // Publish telemetry data
 void MQTT_APP_PublishTelemetry(void)
 {
-#if MQTT_ENABLED == STD_ON && SOILMOISTURE_ENABLED == STD_ON
+#if MQTT_ENABLED == STD_ON && SOILMOISTURE_ENABLED == STD_ON && DHT11_ENABLED == STD_ON
     if (!MQTT_IsConnected())
     {
         DEBUG_PRINTLN("MQTT not connected, skipping telemetry publish");
@@ -71,20 +70,29 @@ void MQTT_APP_PublishTelemetry(void)
 
     messageCount++;
 
-    // Get sensor readings
-    float soilMoisture = SoilMoisture_ReadPercentage();
+    // Get sensor readings from queues
+    uint8_t soilMoistureRaw = 0;
+    SoilMoisture_getMoisture(&soilMoistureRaw);
+    float soilMoisture = (float)soilMoistureRaw;
+
+    int temperature = 0;
+    DHT11_GetTemperature(&temperature);
+
+    int humidity = 0;
+    DHT11_GetHumidity(&humidity);
 
     // Create telemetry payload
     String telemetryPayload = "{";
-    telemetryPayload += "\"timestamp\":" + String(millis()) + ",";
-    telemetryPayload += "\"messageCount\":" + String(messageCount) + ",";
-    telemetryPayload += "\"soilMoisture\":" + String(soilMoisture, 1) + ",";
-    telemetryPayload += "\"pumpStatus\":";
-
-    // Get pump status (assuming Pump module has a status function)
-    // For now, using a placeholder
-    telemetryPayload += "\"unknown\"";  // TODO: Implement pump status reading
-
+    telemetryPayload += "\"site\":\"site1\",";
+    telemetryPayload += "\"node\":\"nodeA\",";
+    telemetryPayload += "\"soil_moisture\":" + String(soilMoisture, 1) + ",";
+    telemetryPayload += "\"temperature\":" + String(temperature) + ",";
+    telemetryPayload += "\"humidity\":" + String(humidity);
+    // Unimplemented sensors
+    // telemetryPayload += ",\"ph\":0.0,";
+    // telemetryPayload += "\"n\":0.0,";
+    // telemetryPayload += "\"p\":0.0,";
+    // telemetryPayload += "\"k\":0.0";
     telemetryPayload += "}";
 
     // Publish telemetry
@@ -104,7 +112,22 @@ void MQTT_APP_PublishDecision(Decision_t decision)
         return;
     }
 
-    // Create decision payload
+    // Publish command based on decision
+    String commandPayload = "{";
+    if (decision == DECISION_IRRIGATE)
+    {
+        commandPayload += "\"cmd\":\"ON\"";
+    }
+    else
+    {
+        commandPayload += "\"cmd\":\"OFF\"";
+    }
+    commandPayload += "}";
+
+    MQTT_Publish(MQTT_TOPIC_COMMAND, commandPayload.c_str(), 0, false);
+    DEBUG_PRINTLN("Command published: " + commandPayload);
+
+    // Create decision payload (legacy, can be removed later)
     String decisionPayload = "{";
     decisionPayload += "\"timestamp\":" + String(millis()) + ",";
     decisionPayload += "\"decision\":";
@@ -163,14 +186,15 @@ void mqtt_main(void) {
         MQTT_Loop();
 
         if (currentTick - lastPublishTime >= pdMS_TO_TICKS(5000)) {
-            publishDummyData();
+            publishHeartbeat();
             lastPublishTime = currentTick;
         }
 
-        if (currentTick - lastDecisionTime >= pdMS_TO_TICKS(15000)) {
-            publishDummyDecision();
-            lastDecisionTime = currentTick;
-        }
+        // Decision publishing commented out since ML task not implemented
+        // if (currentTick - lastDecisionTime >= pdMS_TO_TICKS(15000)) {
+        //     publishDummyDecision();
+        //     lastDecisionTime = currentTick;
+        // }
     } else {
         // Print status periodically when not connected
         static TickType_t lastStatusPrint = 0;
@@ -233,6 +257,26 @@ static void publishDummyData(void) {
 #endif
 }
 
+// Publish heartbeat/status
+static void publishHeartbeat(void) {
+#if MQTT_ENABLED == STD_ON
+    if (!MQTT_IsConnected()) {
+        Serial.println("MQTT not connected, skipping heartbeat publish");
+        return;
+    }
+
+    String heartbeatPayload = "{";
+    heartbeatPayload += "\"site\":\"site1\",";
+    heartbeatPayload += "\"node\":\"nodeA\",";
+    heartbeatPayload += "\"online\":true";
+    heartbeatPayload += "}";
+
+    MQTT_Publish(MQTT_TOPIC_STATUS, heartbeatPayload.c_str(), 0, false);
+
+    DEBUG_PRINTLN("Heartbeat published: " + heartbeatPayload);
+#endif
+}
+
 // Publish dummy irrigation decision
 static void publishDummyDecision(void) {
 #if MQTT_ENABLED == STD_ON
@@ -265,36 +309,48 @@ static void publishDummyDecision(void) {
 #endif
 }
 
-// Handler for general commands
-void MQTT_APP_OnCommand(const char* payload)
-{
-#if MQTT_ENABLED == STD_ON
-    DEBUG_PRINTLN("Command received: " + String(payload));
+//// Handler for general commands (removed since we publish commands instead of subscribing)
+// void MQTT_APP_OnCommand(const char* payload)
+// {
+// #if MQTT_ENABLED == STD_ON
+//     DEBUG_PRINTLN("Command received: " + String(payload));
 
-    // Parse command payload and execute business logic
-    // Example: JSON parsing for commands like "ping", "status", etc.
+//     // Parse command payload and execute business logic
+//     String payloadStr = String(payload);
 
-    if (strcmp(payload, "ping") == 0)
-    {
-        // Respond to ping
-        MQTT_Publish("farm/site1/nodeA/response", "pong", 0, false);
-    }
-    else if (strcmp(payload, "status") == 0)
-    {
-        // Publish current status
-        MQTT_APP_PublishTelemetry();
-    }
-    else if (strcmp(payload, "irrigate_now") == 0)
-    {
-        // Force irrigation decision
-        MQTT_APP_PublishDecision(DECISION_IRRIGATE);
-    }
-    else
-    {
-        DEBUG_PRINTLN("Unknown command: " + String(payload));
-    }
-#endif
-}
+//     if (payloadStr.indexOf("\"cmd\":\"ON\"") != -1)
+//     {
+//         // Turn irrigation on
+//         Pump_Start();
+//         DEBUG_PRINTLN("Irrigation turned ON");
+//     }
+//     else if (payloadStr.indexOf("\"cmd\":\"OFF\"") != -1)
+//     {
+//         // Turn irrigation off
+//         Pump_Stop();
+//         DEBUG_PRINTLN("Irrigation turned OFF");
+//     }
+//     else if (strcmp(payload, "ping") == 0)
+//     {
+//         // Respond to ping
+//         MQTT_Publish("farm/site1/nodeA/response", "pong", 0, false);
+//     }
+//     else if (strcmp(payload, "status") == 0)
+//     {
+//         // Publish current status
+//         MQTT_APP_PublishTelemetry();
+//     }
+//     else if (strcmp(payload, "irrigate_now") == 0)
+//     {
+//         // Force irrigation decision
+//         MQTT_APP_PublishDecision(DECISION_IRRIGATE);
+//     }
+//     else
+//     {
+//         DEBUG_PRINTLN("Unknown command: " + String(payload));
+//     }
+// #endif
+// }
 
 // Handler for pump control commands
 void MQTT_APP_OnPumpCommand(const char* payload)

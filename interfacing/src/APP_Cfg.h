@@ -30,6 +30,7 @@
 #define Nitrogen_ENABLED           STD_ON
 #define Phosphorus_ENABLED         STD_ON
 #define Potassium_ENABLED          STD_ON
+#define PH_ENABLED                 STD_ON
 //Debug Definitions
 #define GPIO_DEBUG                 STD_OFF
 #define SENSORH_DEBUG              STD_OFF
@@ -48,6 +49,7 @@
 #define Nitrogen_DEBUG             STD_ON
 #define Phosphorus_DEBUG           STD_ON
 #define Potassium_DEBUG            STD_ON
+#define PH_DEBUG                   STD_ON
 
 //Pin Configuration
 #define POT_PIN             34
@@ -66,6 +68,8 @@
 #define Phosphorus_RESOLUTION 12
 #define Potassium_SENSOR_PIN 33
 #define Potassium_RESOLUTION 12
+#define PH_SENSOR_PIN       32
+#define PH_RESOLUTION       12
 
 //General Configurations
 #define MAX_TEMP_RANGE                   150.0// Maximum temperature range for LM35 sensor in Celsius
@@ -122,4 +126,9 @@
 
 #define Potassium_QUEUE_SIZE                10
 #define POTASSIUM_MAX  200
+
+// PH Sensor Configuration
+
+#define PH_QUEUE_SIZE                10
+#define PH_MAX  14
 #endif

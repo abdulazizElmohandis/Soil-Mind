@@ -17,6 +17,9 @@ typedef struct
 
 void DHT11_main(void);
 void DHT11_init(void);
+void DHT11_main(void);
+void DHT11_GetTemperature(float *temperature);
+void DHT11_GetHumidity(float *humidity);
 void DHT11_readTemperature(uint8_t sensorIndex);
 float DHT11_readHumidity(uint8_t sensorIndex);
 bool DHT11_read(uint8_t sensorIndex, float *temperature, float *humidity);

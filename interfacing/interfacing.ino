@@ -5,6 +5,7 @@
 #include "src/App/MQTT_APP/mqtt_app.h"
 #include "src/App/SoilMoisture/SoilMoisture.h"
 #include "src/App/DHT/DHT11.h"
+#include "src/App/ML/ML.h"
 
 // ============================================================================
 // APP TASK CONFIGURATION
@@ -16,6 +17,7 @@
 // RTOS task handles
 static TaskHandle_t appTaskHandle = NULL;
 static TaskHandle_t mqttTaskHandle = NULL;
+static TaskHandle_t mlTaskHandle = NULL;
 
 // ============================================================================
 // APP TASK FUNCTION

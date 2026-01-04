@@ -75,10 +75,10 @@ void MQTT_APP_PublishTelemetry(void)
     SoilMoisture_getMoisture(&soilMoistureRaw);
     float soilMoisture = (float)soilMoistureRaw;
 
-    int temperature = 0;
+    float temperature = 0.0f;
     DHT11_GetTemperature(&temperature);
 
-    int humidity = 0;
+    float humidity = 0.0f;
     DHT11_GetHumidity(&humidity);
 
     // Create telemetry payload
@@ -86,7 +86,7 @@ void MQTT_APP_PublishTelemetry(void)
     telemetryPayload += "\"site\":\"site1\",";
     telemetryPayload += "\"node\":\"nodeA\",";
     telemetryPayload += "\"soil_moisture\":" + String(soilMoisture, 1) + ",";
-    telemetryPayload += "\"temperature\":" + String(temperature) + ",";
+    telemetryPayload += "\"temperature\":" + String((int)temperature) + ",";
     telemetryPayload += "\"humidity\":" + String(humidity);
     // Unimplemented sensors
     // telemetryPayload += ",\"ph\":0.0,";

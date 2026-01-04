@@ -28,6 +28,7 @@
 #define ChatApp_ENABLED            STD_ON
 #define DHT11_ENABLED              STD_ON
 #define Nitrogen_ENABLED           STD_ON
+#define Phosphorus_ENABLED         STD_ON
 //Debug Definitions
 #define GPIO_DEBUG                 STD_OFF
 #define SENSORH_DEBUG              STD_OFF
@@ -44,6 +45,7 @@
 #define ChatApp_DEBUG              STD_ON
 #define DHT11_DEBUG                STD_ON
 #define Nitrogen_DEBUG             STD_ON
+#define Phosphorus_DEBUG           STD_ON
 
 //Pin Configuration
 #define POT_PIN             34
@@ -58,6 +60,8 @@
 #define PUMP_PIN            26
 #define Nitrogen_SENSOR_PIN 36
 #define Nitrogen_RESOLUTION 12
+#define Phosphorus_SENSOR_PIN 39
+#define Phosphorus_RESOLUTION 12
 
 //General Configurations
 #define MAX_TEMP_RANGE                   150.0// Maximum temperature range for LM35 sensor in Celsius
@@ -104,7 +108,10 @@
 
 #define NITROGEN_MAX  200
 
+// phosphorus Sensor Configuration
 
+#define Phosphorus_QUEUE_SIZE                10
 
+#define PHOSPHORUS_MAX  200
 
 #endif

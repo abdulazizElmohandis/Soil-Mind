@@ -1,4 +1,4 @@
-#include <Arduino.h>
+/*#include <Arduino.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include "src/Hal/WIFI/wifi.h"
@@ -7,7 +7,7 @@
 // ============================================================================
 // APP TASK CONFIGURATION
 // ============================================================================
-<<<<<<< HEAD
+
 // Uncomment the line below to enable MQTT testing
 
 =======
@@ -66,7 +66,7 @@ static void apptask_400ms(void* parameter)
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
 }
->>>>>>> 7b80536acc4f45c19dbaadc8a103e142d53c3769
+
 
 // ============================================================================
 // SETUP
@@ -90,7 +90,7 @@ void setup() {
     APP_TASK_STACK_SIZE,       // Stack size
     NULL,                      // Parameters
     APP_TASK_PRIORITY,         // Priority (higher than MQTT)
-    &appTaskHandle,            // Task handle
+    appTaskHandle,            // Task handle
     APP_TASK_CORE              // Core 0
   );
 
@@ -108,7 +108,7 @@ void setup() {
     APP_TASK_STACK_SIZE,       // Stack size
     NULL,                      // Parameters
     2,                         // Priority (lower than WiFi)
-    &mqttTaskHandle,           // Task handle
+    mqttTaskHandle,           // Task handle
     1                          // Core 1
   );
 
@@ -117,7 +117,6 @@ void setup() {
   } else {
     Serial.println("apptask_400ms created successfully on Core 1");
   }
->>>>>>> 7b80536acc4f45c19dbaadc8a103e142d53c3769
 }
 
 // ============================================================================
@@ -125,11 +124,8 @@ void setup() {
 // ============================================================================
 void loop() {
   // TODO: Add your application main loop here
-<<<<<<< HEAD
   
   // Uncomment to test MQTT (requires MQTTTest.h to be included above)
-
-=======
 
   // MQTT RTOS Test runs automatically in background task
   // No need to call MQTTTest_Loop() anymore
@@ -143,7 +139,6 @@ void loop() {
     Serial.println("Main loop: MQTT RTOS test running in background...");
     lastStatusTime = millis();
   }
->>>>>>> 7b80536acc4f45c19dbaadc8a103e142d53c3769
 }
 
 // ============================================================================
@@ -171,3 +166,11 @@ void cleanup() {
   // TODO: Add MQTT_APP_Deinit if needed
 }
 */
+void setup()
+{
+
+}
+void loop()
+{
+
+}

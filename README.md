@@ -385,14 +385,6 @@ Connect sensors according to pin assignments in `APP_Cfg.h`:
 }
 ```
 
-### Control Logic Decision Table
-
-| Soil Moisture State | Decision | Reason |
-|---------------------|----------|--------|
-| Below minimum threshold | ON | Moisture below minimum |
-| Above maximum threshold | OFF | Moisture above maximum |
-| Within range | HOLD | Moisture in optimal range |
-
 ## Development & Testing
 
 ### Using the Simulator
@@ -416,40 +408,5 @@ Enable debug flags in `APP_Cfg.h`:
 #define DHT11_DEBUG                STD_ON
 // ... other debug flags
 ```
-
-### Adding New Sensors
-
-1. Create new sensor module in `src/App/`
-2. Update `APP_Cfg.h` with pin assignments and thresholds
-3. Integrate into main RTOS tasks in `interfacing.ino`
-4. Update MQTT telemetry payload
-5. Modify ML model input features if needed
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature-name`
-3. Commit changes: `git commit -am 'Add feature'`
-4. Push to branch: `git push origin feature-name`
-5. Submit a pull request
-
-### Code Style
-- Follow Arduino coding conventions
-- Use meaningful variable names
-- Add comments for complex logic
-- Keep functions focused on single responsibilities
-
-## Authors & Acknowledgments
-
-- **Marwa Salama** - Project development and implementation
-- **Abdulaziz Elmohandis** - Repository maintainer
-
-This project was developed as part of smart agriculture research, combining IoT, machine learning, and cloud technologies for sustainable farming solutions.
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Project Status
 
 🚧 **Currently in Development**

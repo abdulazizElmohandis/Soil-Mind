@@ -16,8 +16,6 @@ static uint8_t countH;
 #endif
 static void inqT(float data)
 {
-    if (countT < Temperature_QUEUE_SIZE)
-    {
         if (inT == Temperature_QUEUE_SIZE)
         {
             inT = 0;
@@ -28,7 +26,6 @@ static void inqT(float data)
         }
         Temperature[inT++] = data;
         countT++;
-    }
 }
 
 static queue_t deqT(float *data)

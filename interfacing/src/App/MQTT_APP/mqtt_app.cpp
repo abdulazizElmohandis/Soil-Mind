@@ -1,7 +1,7 @@
-#include "mqtt_app.h"
+/*#include "mqtt_app.h"
 #include <Arduino.h>
 #include "../../Hal/MQTT/mqtt_core.h"
-#include "../../Hal/SoilMoisture/SoilMoisture.h"
+#include "../SoilMoisture/SoilMoisture.h"
 #include "../../Hal/Pump/Pump.h"
 #include "../../Hal/WIFI/wifi.h"
 #include "../../APP_Cfg.h"
@@ -331,3 +331,4 @@ void MQTT_APP_OnPumpCommand(const char* payload)
     }
 #endif
 }
+*/

@@ -1,6 +1,14 @@
 #ifndef APP_CFG_H
 #define APP_CFG_H 
 
+
+
+typedef enum
+{
+    queue_ok,
+    queue_empty,
+}queue_t;
+
 //General Definitions
 #define STD_ON 1
 #define STD_OFF 0
@@ -9,6 +17,8 @@
 #define _4G    3
 #define Zero 0
 #define ADC_MAX 4095
+
+
 
 
 //Module definitions
@@ -91,7 +101,7 @@
 #define WIFI_CONNECT_TIMEOUT_MS    15000
 
 //MQTT Configuration
-#define MQTT_BROKER                "10.17.84.102"
+#define MQTT_BROKER                "54.234.129.218"
 #define MQTT_PORT                   1883
 #define MQTT_USERNAME               ""  // Leave empty "" if no authentication needed
 #define MQTT_PASSWORD               ""  // Leave empty "" if no authentication needed

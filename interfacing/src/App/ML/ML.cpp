@@ -2,11 +2,18 @@
 #include "../SoilMoisture/SoilMoisture.h"
 #include "../DHT/DHT11.h"
 
-// TensorFlow Lite includes (assuming ArduTFLite library)
-#include <ArduTFLite.h>
+// TensorFlow Lite Micro includes
+#include <Chirale_TensorFlowLite.h>
+#include "tensorflow/lite/micro/all_ops_resolver.h"
+#include "tensorflow/lite/micro/micro_interpreter.h"
+#include "tensorflow/lite/schema/schema_generated.h"
 
 // TensorFlow Lite globals
 uint8_t tensorArena[kTensorArenaSize];
+const tflite::Model* model = nullptr;
+tflite::MicroInterpreter* interpreter = nullptr;
+TfLiteTensor* input = nullptr;
+TfLiteTensor* output = nullptr;
 bool modelReady = false;
 
 // Sensor history
@@ -14,15 +21,35 @@ SensorHistory history;
 
 // ML inference implementation
 bool ML_Init() {
-    Serial.println("[ML] Initializing TensorFlow Lite model...");
+    Serial.println("[ML] Initializing TensorFlow Lite Micro model...");
 
-    // Initialize model
-    modelReady = modelInit(irrigation_model, tensorArena, kTensorArenaSize);
-
-    if (!modelReady) {
-        Serial.println("[ML ERROR] Model failed to load!");
+    // Map the data into a model
+    model = tflite::GetModel(irrigation_model);
+    if (model->version() != TFLITE_SCHEMA_VERSION) {
+        Serial.println("[ML ERROR] Model schema version mismatch!");
         return false;
     }
+
+    // Create an AllOpsResolver to load all available operations
+    static tflite::AllOpsResolver resolver;
+
+    // Build an interpreter to run the model
+    static tflite::MicroInterpreter static_interpreter(
+        model, resolver, tensorArena, kTensorArenaSize);
+    interpreter = &static_interpreter;
+
+    // Allocate memory from the tensorArena for the model's tensors
+    TfLiteStatus allocate_status = interpreter->AllocateTensors();
+    if (allocate_status != kTfLiteOk) {
+        Serial.println("[ML ERROR] Failed to allocate tensors!");
+        return false;
+    }
+
+    // Get pointers to the model's input and output tensors
+    input = interpreter->input(0);
+    output = interpreter->output(0);
+
+    modelReady = true;
 
     // Initialize history
     history.init();
@@ -32,7 +59,7 @@ bool ML_Init() {
 }
 
 float ML_RunInference() {
-    if (!modelReady) {
+    if (!modelReady || !interpreter) {
         Serial.println("[ML ERROR] Model not ready!");
         return -1.0f;
     }
@@ -59,17 +86,20 @@ float ML_RunInference() {
         scaled[i] = (features[i] - featureMeans[i]) / featureStds[i];
     }
 
-    // Set inputs and run
+    // Copy the scaled features to the input tensor
     for (int i = 0; i < NUM_FEATURES; i++) {
-        modelSetInput(scaled[i], i);
+        input->data.f[i] = scaled[i];
     }
 
-    if (!modelRunInference()) {
+    // Run inference
+    TfLiteStatus invoke_status = interpreter->Invoke();
+    if (invoke_status != kTfLiteOk) {
         Serial.println("[ML ERROR] Inference failed!");
         return -1.0f;
     }
 
-    float probability = modelGetOutput(0);
+    // Get the output probability
+    float probability = output->data.f[0];
 
     Serial.printf("[ML] Inference result: %.4f\n", probability);
     return probability;

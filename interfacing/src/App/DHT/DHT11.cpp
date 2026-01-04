@@ -143,9 +143,11 @@ void DHT11_GetTemperature(float *temperature)
 {
 #if DHT11_ENABLED == STD_ON
     if (deqT(temperature) == queue_empty)
-    {
+    {   
         *temperature = 0.0f; // Indicate that the queue is empty
     }
+    DEBUG_PRINTLN("[DHT11] getting Temp = ");
+    DEBUG_PRINTLN(*temperature);
 #endif
 }
 void DHT11_GetHumidity(float *humidity)
@@ -155,5 +157,8 @@ void DHT11_GetHumidity(float *humidity)
     {
         *humidity = 0.0f; // Indicate that the queue is empty
     }
+
+    DEBUG_PRINTLN("[DHT11] getting Temp = ");
+    DEBUG_PRINTLN(*humidity);
 #endif
 }

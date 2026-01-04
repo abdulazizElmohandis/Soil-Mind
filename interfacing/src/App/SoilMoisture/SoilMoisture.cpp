@@ -14,7 +14,7 @@ static uint8_t count;
 #endif
 
 static void inq(int data)
-{{
+{
         if (in == Moisture_QUEUE_SIZE)
         {
             in = 0;

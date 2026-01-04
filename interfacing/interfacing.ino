@@ -1,4 +1,4 @@
-/*#include <Arduino.h>
+#include <Arduino.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include "src/Hal/WIFI/wifi.h"
@@ -11,17 +11,15 @@
 // APP TASK CONFIGURATION
 // ============================================================================
 
-// Uncomment the line below to enable MQTT testing
-
-=======
 #define APP_TASK_CORE 0
 #define APP_TASK_PRIORITY 3  // Higher than MQTT (2)
 #define APP_TASK_STACK_SIZE 3072
 
 // RTOS task handles
-static TaskHandle_t appTaskHandle = NULL;
+static TaskHandle_t appTaskHandle  = NULL;
 static TaskHandle_t mqttTaskHandle = NULL;
-static TaskHandle_t mlTaskHandle = NULL;
+static TaskHandle_t mlTaskHandle   = NULL;
+
 
 // ============================================================================
 // APP TASK FUNCTION
@@ -100,9 +98,6 @@ static void mlTask30s(void* parameter)
 // SETUP
 // ============================================================================
 void setup() {
-<<<<<<< HEAD
-  
-=======
   Serial.begin(115200);
   delay(1000);
   // TODO: Add your application initialization here
@@ -127,7 +122,7 @@ void setup() {
     APP_TASK_STACK_SIZE,       // Stack size
     NULL,                      // Parameters
     APP_TASK_PRIORITY,         // Priority (higher than MQTT)
-    appTaskHandle,            // Task handle
+    &appTaskHandle,            // Task handle
     APP_TASK_CORE              // Core 0
   );
 
@@ -145,7 +140,7 @@ void setup() {
     APP_TASK_STACK_SIZE,       // Stack size
     NULL,                      // Parameters
     2,                         // Priority (lower than WiFi)
-    mqttTaskHandle,           // Task handle
+    &mqttTaskHandle,           // Task handle
     1                          // Core 1
   );
 
@@ -200,7 +195,7 @@ void loop() {
 // CLEANUP (Optional - for testing)
 // ============================================================================
 // Uncomment the function below if you want to test deinitialization
-/*
+
 void cleanup() {
   // Stop appTask100ms
   if (appTaskHandle != NULL) {
@@ -219,13 +214,4 @@ void cleanup() {
   }
 
   // TODO: Add MQTT_APP_Deinit if needed
-}
-*/
-void setup()
-{
-
-}
-void loop()
-{
-
 }

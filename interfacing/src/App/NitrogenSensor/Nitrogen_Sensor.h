@@ -13,11 +13,7 @@ typedef struct{
     ADC_t adcConfig;
 }Nitrogen_t;
 
-typedef enum
-{
-    queue_ok,
-    queue_empty,
-}queue_t;
+
 
 void NitrogenSensor_init(void);
 

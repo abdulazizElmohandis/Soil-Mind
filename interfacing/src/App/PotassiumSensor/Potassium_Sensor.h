@@ -13,11 +13,7 @@ typedef struct{
     ADC_t adcConfig;
 }Potassium_t;
 
-typedef enum
-{
-    queue_ok,
-    queue_empty,
-}queue_t;
+
 
 void PotassiumSensor_init(void);
 

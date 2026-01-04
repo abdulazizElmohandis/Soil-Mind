@@ -70,24 +70,6 @@ Both models are:
   - Soil moisture < 35% AND humidity < 45% → Irrigate
   - Soil moisture >= 70% → Never irrigate
 
-#### Feature Engineering
-
-The v2 model uses advanced time-series feature engineering:
-
-```python
-# Rolling statistics
-temperature_mean = rolling_mean(temperature, window=4)
-soilmoisture_mean = rolling_mean(soilmoisture, window=4)
-
-# Trend features
-temperature_trend = diff(temperature, periods=4)
-soilmoisture_trend = diff(soilmoisture, periods=4)
-
-# Lag features
-soilmoisture_lag_1 = shift(soilmoisture, periods=1)
-soilmoisture_lag_2 = shift(soilmoisture, periods=2)
-```
-
 ---
 
 ### Plant Health Classification Model

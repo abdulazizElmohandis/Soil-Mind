@@ -5,6 +5,10 @@
 #include "../../APP_Cfg.h"
 #include "../../Hal/ADC/ADC.h"
 
+
+
+
+
 typedef struct{
     ADC_t adcConfig;
 }Nitrogen_t;

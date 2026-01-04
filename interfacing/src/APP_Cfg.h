@@ -7,6 +7,8 @@
 #define WIFI_MODULE    1
 #define BLE     2
 #define _4G    3
+#define Zero 0
+#define ADC_MAX 4095
 
 //Module definitions
 #define GPIO_ENABLED               STD_OFF
@@ -24,6 +26,7 @@
 #define UART_ENABLED               STD_ON
 #define ChatApp_ENABLED            STD_ON
 #define DHT11_ENABLED              STD_ON
+#define Nitrogen_ENABLED           STD_ON
 //Debug Definitions
 #define GPIO_DEBUG                 STD_OFF
 #define SENSORH_DEBUG              STD_OFF
@@ -39,6 +42,7 @@
 #define UART_DEBUG                 STD_ON
 #define ChatApp_DEBUG              STD_ON
 #define DHT11_DEBUG                STD_ON
+#define Nitrogen_DEBUG             STD_ON
 
 //Pin Configuration
 #define POT_PIN             34
@@ -51,6 +55,8 @@
 #define ALARM_HIGH_LED      17
 #define DIMER_LED           9
 #define PUMP_PIN            26
+#define Nitrogen_SENSOR_PIN 36
+#define Nitrogen_RESOLUTION 12
 
 //General Configurations
 #define MAX_TEMP_RANGE                   150.0// Maximum temperature range for LM35 sensor in Celsius
@@ -85,7 +91,19 @@
 #define Moisture_QUEUE_SIZE                 10
 // DHT 11 Configuration
 #define DHT11_1_PIN   5
+#define DHT22_1_PIN   5
+#define MAX_SENSORS_DHT 1  
 #define Temperature_QUEUE_SIZE              10
 #define Humidity_QUEUE_SIZE                 10
+
+
+// Nitrogen Sensor Configuration
+
+#define Nitrogen_QUEUE_SIZE                10
+
+#define NITROGEN_MAX  200
+
+
+
 
 #endif

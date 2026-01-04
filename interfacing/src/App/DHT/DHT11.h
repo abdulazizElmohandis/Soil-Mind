@@ -6,9 +6,7 @@
 #include "../../APP_Cfg.h"
 #include <DHT.h>
 
-
-
-#define MAX_SENSORS 1     
+   
 
 #define DHT_TYPE DHT11  
 

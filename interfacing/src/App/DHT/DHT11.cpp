@@ -89,7 +89,7 @@ static queue_t deqH(int *data)
     return status;
 }
 
-static DHT11Cfg_t DHT11_Sensors[MAX_SENSORS] = {
+static DHT11Cfg_t DHT11_Sensors[MAX_SENSORS_DHT] = {
     {DHT11_1_PIN}};
 
 static DHT dht11_sensor(DHT11_Sensors[0].data_pin, DHT_TYPE);
@@ -98,7 +98,7 @@ void DHT11_init(void)
 {
 #if DHT11_ENABLED == STD_ON
     int i = 0;
-    for (i = 0; i < MAX_SENSORS; i++)
+    for (i = 0; i < MAX_SENSORS_DHT; i++)
     {
         dht11_sensor.begin();
         DEBUG_PRINTLN("DHT11 Sensor Initialized on Pin: " + String(DHT11_Sensors[i].data_pin));

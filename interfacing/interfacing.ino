@@ -5,7 +5,7 @@
 #include "src/App/MQTT_APP/mqtt_app.h"
 #include "src/App/SoilMoisture/SoilMoisture.h"
 #include "src/App/DHT/DHT11.h"
-#include "src/App/ML/ML.h"
+//#include "src/App/ML/ML.h"
 
 // ============================================================================
 // APP TASK CONFIGURATION
@@ -76,23 +76,23 @@ static void apptask_400ms(void* parameter)
 
 // ============================================================================
 // ML TASK FUNCTION (30-second interval)
-// ============================================================================
-static void mlTask30s(void* parameter)
-{
-    Serial.println("mlTask30s started on core: " + String(xPortGetCoreID()));
+// // ============================================================================
+// static void mlTask30s(void* parameter)
+// {
+//     Serial.println("mlTask30s started on core: " + String(xPortGetCoreID()));
 
-    TickType_t xLastWakeTime = xTaskGetTickCount();
-    const TickType_t xFrequency = pdMS_TO_TICKS(30000); // 30 seconds
+//     TickType_t xLastWakeTime = xTaskGetTickCount();
+//     const TickType_t xFrequency = pdMS_TO_TICKS(30000); // 30 seconds
 
-    for(;;)
-    {
-        // Process ML inference and decision
-        ML_ProcessDecision();
+//     for(;;)
+//     {
+//         // Process ML inference and decision
+//         ML_ProcessDecision();
 
-        // Delay for next iteration
-        vTaskDelayUntil(&xLastWakeTime, xFrequency);
-    }
-}
+//         // Delay for next iteration
+//         vTaskDelayUntil(&xLastWakeTime, xFrequency);
+//     }
+// }
 
 // ============================================================================
 // SETUP
@@ -106,10 +106,10 @@ void setup() {
   SoilMoisture_Init();
   DHT11_init();
 
-  // Initialize ML model
-  if (!ML_Init()) {
-    Serial.println("ERROR: Failed to initialize ML model!");
-  }
+  // // Initialize ML model
+  // if (!ML_Init()) {
+  //   Serial.println("ERROR: Failed to initialize ML model!");
+  // }
 
   // Initialize MQTT APP
   MQTT_APP_Setup();
@@ -151,22 +151,22 @@ void setup() {
   }
 
   // Create mlTask30s on Core 1
-  Serial.println("Creating mlTask30s...");
-  taskCreated = xTaskCreatePinnedToCore(
-    mlTask30s,                 // Task function
-    "mlTask30s",               // Task name
-    APP_TASK_STACK_SIZE,       // Stack size
-    NULL,                      // Parameters
-    1,                         // Priority (lowest)
-    &mlTaskHandle,             // Task handle
-    1                          // Core 1
-  );
+  // Serial.println("Creating mlTask30s...");
+  // taskCreated = xTaskCreatePinnedToCore(
+  //   mlTask30s,                 // Task function
+  //   "mlTask30s",               // Task name
+  //   APP_TASK_STACK_SIZE,       // Stack size
+  //   NULL,                      // Parameters
+  //   1,                         // Priority (lowest)
+  //   &mlTaskHandle,             // Task handle
+  //   1                          // Core 1
+  // );
 
-  if (taskCreated != pdPASS) {
-    Serial.println("ERROR: Failed to create mlTask30s!");
-  } else {
-    Serial.println("mlTask30s created successfully on Core 1");
-  }
+  // if (taskCreated != pdPASS) {
+  //   Serial.println("ERROR: Failed to create mlTask30s!");
+  // } else {
+  //   Serial.println("mlTask30s created successfully on Core 1");
+  // }
 }
 
 // ============================================================================

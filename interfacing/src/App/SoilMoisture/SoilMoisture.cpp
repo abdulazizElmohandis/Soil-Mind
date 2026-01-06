@@ -13,6 +13,32 @@ static uint8_t count;
 #define DEBUG_PRINTLN(var)
 #endif
 
+
+#if SOILMOISTURE_DEBUG == STD_ON
+static void Debug_PrintQueue(const char *tag)
+{
+    Serial.print("[QUEUE] ");
+    Serial.print(tag);
+    Serial.print(" | in=");
+    Serial.print(in);
+    Serial.print(" out=");
+    Serial.print(out);
+    Serial.print(" count=");
+    Serial.print(count);
+    Serial.print(" | data: ");
+
+    for (uint8_t i = 0; i < Moisture_QUEUE_SIZE; i++)
+    {
+        Serial.print(Soil_Moisture_Queue[i]);
+        Serial.print(" ");
+    }
+    Serial.println();
+}
+#else
+#define Debug_PrintQueue(tag)
+#endif
+
+
 static void inq(int data)
 {
         if (in == Moisture_QUEUE_SIZE)
@@ -27,7 +53,7 @@ static void inq(int data)
         count++;
 }
 
-static queue_t deq(int *data)
+static queue_t deq(uint8_t *data)
 {
     queue_t status = queue_ok;
     if (out == Moisture_QUEUE_SIZE)
@@ -69,19 +95,40 @@ void SoilMoisture_main(void)
 {
 #if SOILMOISTURE_ENABLED == STD_ON
     uint32_t rawValue = ADC_ReadValue(defaultSoilMoistureConfig.adcConfig.channel);
-    uint8_t moisture = map(rawValue, DRY_VALUE, WET_VALUE, 0, 100);
+    uint32_t dry = DRY_VALUE;
+    uint32_t wet = WET_VALUE;
+    // Clamp raw between wet and dry regardless of which is bigger
+    uint32_t lo = min(dry, wet);
+    uint32_t hi = max(dry, wet);
+    rawValue = constrain(rawValue, lo, hi);
+    // Convert to 0..100 with correct direction
+    int moisture;
+    if (dry > wet) {
+    // dry -> 0, wet -> 100
+    moisture = (int)(( (long)(dry - rawValue) * 100L ) / (long)(dry - wet));
+    } else {
+    // dry -> 0, wet -> 100 (opposite direction)
+    moisture = (int)(( (long)(rawValue - dry) * 100L ) / (long)(wet - dry));
+    }
+    moisture = constrain(moisture, 0, 100);
+    uint8_t m = (uint8_t)moisture;
+
     DEBUG_PRINTLN("Soil Moisture Read Value: " + String(rawValue));
-    DEBUG_PRINTLN("Soil Moisture percentage: " + String(moisture));
-    inq(moisture);
+    DEBUG_PRINTLN("Soil Moisture percentage: " + String(m));
+    inq(m);
+    Debug_PrintQueue("AFTER INQ");
+
 
 #endif
 }
 void SoilMoisture_getMoisture(uint8_t *moisture)
 {
 #if SOILMOISTURE_ENABLED == STD_ON
-    if (deq((int *)moisture) == queue_empty)
+    if (deq(moisture) == queue_empty)
     {
         *moisture = 0; // Indicate that the queue is empty
     }
+    Debug_PrintQueue("AFTER INQ");
+
 #endif
 }

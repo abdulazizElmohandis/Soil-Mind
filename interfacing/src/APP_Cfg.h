@@ -32,7 +32,7 @@ typedef enum
 #define PWM_ENABLED                STD_OFF
 #define PUMP_ENABLED               STD_ON
 #define WIFI_ENABLED               STD_ON
-#define MQTT_ENABLED               STD_ON
+#define MQTT_ENABLED               STD_OFF
 #define DIMALARM_ENABLED           STD_OFF
 #define UART_ENABLED               STD_ON
 #define ChatApp_ENABLED            STD_ON
@@ -46,7 +46,7 @@ typedef enum
 #define SENSORH_DEBUG              STD_OFF
 #define ADC_DEBUG                  STD_OFF
 #define POT_DEBUG                  STD_OFF
-#define SOILMOISTURE_DEBUG         STD_OFF
+#define SOILMOISTURE_DEBUG         STD_ON
 #define LM35_DEBUG                 STD_OFF
 #define PWM_DEBUG                  STD_OFF
 #define PUMP_DEBUG                 STD_OFF
@@ -63,7 +63,7 @@ typedef enum
 
 //Pin Configuration
 #define POT_PIN             34
-#define SOILMOISTURE_PIN    35
+#define SOILMOISTURE_PIN    33
 #define LM35_PIN            0
 #define POT_RESOLUTION      12
 #define SOILMOISTURE_RESOLUTION 12
@@ -76,7 +76,7 @@ typedef enum
 #define Nitrogen_RESOLUTION 12
 #define Phosphorus_SENSOR_PIN 39
 #define Phosphorus_RESOLUTION 12
-#define Potassium_SENSOR_PIN 33
+#define Potassium_SENSOR_PIN 34
 #define Potassium_RESOLUTION 12
 #define PH_SENSOR_PIN       32
 #define PH_RESOLUTION       12
@@ -113,8 +113,8 @@ typedef enum
 // QUEUE Configuration
 #define Moisture_QUEUE_SIZE                 10
 // DHT 11 Configuration
-#define DHT11_1_PIN   5
-#define DHT22_1_PIN   5
+#define DHT11_1_PIN   15
+#define DHT22_1_PIN   15
 #define MAX_SENSORS_DHT 1  
 #define Temperature_QUEUE_SIZE              10
 #define Humidity_QUEUE_SIZE                 10

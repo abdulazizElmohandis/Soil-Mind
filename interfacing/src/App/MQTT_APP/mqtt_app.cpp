@@ -17,6 +17,8 @@
 #define MQTT_TOPIC_TELEMETRY        "farm/site1/nodeA/telemetry"
 #define MQTT_TOPIC_STATUS           "farm/site1/nodeA/status"
 #define MQTT_TOPIC_COMMAND          "farm/site1/nodeA/cmd"
+#define MQTT_TOPIC_DECISION         "farm/site1/nodeA/decision"
+#define MQTT_TOPIC_HEALTH           "farm/site1/nodeA/health"
 
 // Static variables for application state
 static unsigned long lastTelemetryTime = 0;

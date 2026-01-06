@@ -101,10 +101,15 @@ void app1_task()
     SoilMoisture_Init();
     DHT11_init();
 
-    // Initialize ML model
+    // Initialize ML models
     if (!ML_Init())
     {
-        Serial.println("ERROR: Failed to initialize ML model!");
+        Serial.println("ERROR: Failed to initialize irrigation ML model!");
+    }
+
+    if (!ML_HealthInit())
+    {
+        Serial.println("ERROR: Failed to initialize health ML model!");
     }
 
     // Initialize MQTT APP
@@ -172,5 +177,3 @@ void app1_task()
         Serial.println("mlTask30s created successfully on Core 1");
     }
 }
-
-

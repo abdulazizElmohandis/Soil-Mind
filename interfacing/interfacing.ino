@@ -4,6 +4,12 @@
 #include "src/Hal/WIFI/wifi.h"
 #include "src/App/MQTT_APP/mqtt_app.h"
 #include "src/App/SoilMoisture/SoilMoisture.h"
+#include "src/App/PotassiumSensor/Potassium_Sensor.h"
+#include "src/App/NitrogenSensor/Nitrogen_Sensor.h"
+#include "src/App/PhosphorusSensor/Phosphorus_Sensor.h"
+#include "src/App/PHSensor/PH_Sensor.h"
+
+
 #include "src/App/DHT/DHT11.h"
 //#include "src/App/ML/ML.h"
 
@@ -64,7 +70,11 @@ static void apptask_400ms(void* parameter)
         // Call sensor mains
         SoilMoisture_main();
         DHT11_main();
-
+        PotassiumSensor_main();
+        NitrogenSensor_main();
+        PhosphorusSensor_main();
+        PHSensor_main();
+        
         // Call MQTT main
         mqtt_main();
 
@@ -105,6 +115,10 @@ void setup() {
   // Initialize sensors
   SoilMoisture_Init();
   DHT11_init();
+  PotassiumSensor_init();
+  NitrogenSensor_init();
+  PhosphorusSensor_init();
+  PHSensor_init();
 
   // // Initialize ML model
   // if (!ML_Init()) {

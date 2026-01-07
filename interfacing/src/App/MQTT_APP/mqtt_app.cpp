@@ -17,6 +17,9 @@
 #define MQTT_TOPIC_TELEMETRY        "farm/site1/nodeA/telemetry"
 #define MQTT_TOPIC_STATUS           "farm/site1/nodeA/status"
 #define MQTT_TOPIC_COMMAND          "farm/site1/nodeA/cmd"
+#define MQTT_TOPIC_IRRIGATION_DECISION "farm/site1/nodeA/decision"
+
+
 
 // Static variables for application state
 static unsigned long lastTelemetryTime = 0;
@@ -42,7 +45,6 @@ void MQTT_APP_Init(void)
     DEBUG_PRINTLN("MQTT Application Initializing");
 
     // Register message handlers for subscribed topics
-    MQTT_RegisterHandler(MQTT_TOPIC_PUMP_CONTROL, MQTT_APP_OnPumpCommand);
 
     DEBUG_PRINTLN("MQTT Application initialized successfully");
 #endif
@@ -52,7 +54,6 @@ void MQTT_APP_Init(void)
 void MQTT_APP_SubscribeTopics(void)
 {
 #if MQTT_ENABLED == STD_ON
-    MQTT_Subscribe(MQTT_TOPIC_PUMP_CONTROL, 0);
 
     DEBUG_PRINTLN("MQTT Application topics subscribed");
 #endif
@@ -112,47 +113,33 @@ void MQTT_APP_PublishDecision(Decision_t decision)
         return;
     }
 
-    // Publish command based on decision
-    String commandPayload = "{";
-    if (decision == DECISION_IRRIGATE)
-    {
-        commandPayload += "\"cmd\":\"ON\"";
-    }
-    else
-    {
-        commandPayload += "\"cmd\":\"OFF\"";
-    }
-    commandPayload += "}";
-
-    MQTT_Publish(MQTT_TOPIC_COMMAND, commandPayload.c_str(), 0, false);
-    DEBUG_PRINTLN("Command published: " + commandPayload);
-
-    // Create decision payload (legacy, can be removed later)
+    // Create decision payload
     String decisionPayload = "{";
-    decisionPayload += "\"timestamp\":" + String(millis()) + ",";
+    decisionPayload += "\"site\":\"site1\",";
+    decisionPayload += "\"node\":\"nodeA\",";
+    decisionPayload += "\"target\":\"nodeB\",";
     decisionPayload += "\"decision\":";
 
     switch (decision)
     {
         case DECISION_IRRIGATE:
-            decisionPayload += "\"IRRIGATE\"";
+            decisionPayload += "0";
             break;
         case DECISION_NO_IRRIGATION:
-            decisionPayload += "\"NO_IRRIGATION\"";
+            decisionPayload += "1";
             break;
         case DECISION_CHECK_SYSTEM:
-            decisionPayload += "\"CHECK_SYSTEM\"";
+            decisionPayload += "-1";  // Use -1 for system check, or handle separately
             break;
         default:
-            decisionPayload += "\"UNKNOWN\"";
+            decisionPayload += "-2";  // Use -2 for unknown
             break;
     }
 
     decisionPayload += "}";
 
-    // Publish decision
+    // Publish decision to new topic format
     MQTT_Publish(MQTT_TOPIC_IRRIGATION_DECISION, decisionPayload.c_str(), 0, false);
-
     DEBUG_PRINTLN("Decision published: " + decisionPayload);
 #endif
 }

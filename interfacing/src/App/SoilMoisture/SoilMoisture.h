@@ -20,7 +20,7 @@ void SoilMoisture_Init(void);
 
 void SoilMoisture_main(void);
 
-void SoilMoisture_getMoisture(uint8_t *moisture);
+queue_t SoilMoisture_getMoisture(uint8_t *moisture);
 
 
 #endif

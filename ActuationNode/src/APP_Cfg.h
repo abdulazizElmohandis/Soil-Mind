@@ -29,7 +29,7 @@ typedef enum
 #define POT_ENABLED                STD_ON
 #define SOILMOISTURE_ENABLED       STD_ON
 #define LM35_ENABLED               STD_OFF
-#define PWM_ENABLED                STD_OFF
+#define PWM_ENABLED                STD_ON
 #define PUMP_ENABLED               STD_ON
 #define WIFI_ENABLED               STD_ON
 #define MQTT_ENABLED               STD_ON
@@ -48,7 +48,7 @@ typedef enum
 #define POT_DEBUG                  STD_OFF
 #define SOILMOISTURE_DEBUG         STD_OFF
 #define LM35_DEBUG                 STD_OFF
-#define PWM_DEBUG                  STD_OFF
+#define PWM_DEBUG                  STD_ON
 #define PUMP_DEBUG                 STD_OFF
 #define WIFI_DEBUG                 STD_OFF
 #define MQTT_DEBUG                 STD_ON
@@ -71,7 +71,7 @@ typedef enum
 #define ALARM_LOW_LED       16
 #define ALARM_HIGH_LED      17
 #define DIMER_LED           9
-#define PUMP_PIN            26
+#define PUMP_PIN            25
 #define Nitrogen_SENSOR_PIN 34
 #define Nitrogen_RESOLUTION 12
 #define Phosphorus_SENSOR_PIN 36
@@ -88,8 +88,6 @@ typedef enum
 #define ADC_MAX_VALUE                    4095 // 12-bit ADC
 #define PUMP_PWM_FREQUENCY                20000 // 20 kHz PWM frequency for pump
 #define PUMP_PWM_RESOLUTION               8     // 8-bit PWM resolution for pump
-
-
 //UART1 Configuration
 #define UART1_BAUD_RATE 115200
 #define UART1_TX_PIN    17

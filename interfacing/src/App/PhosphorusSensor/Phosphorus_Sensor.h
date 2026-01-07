@@ -20,7 +20,7 @@ void PhosphorusSensor_init(void);
 void PhosphorusSensor_main(void);
 
 
-void PhosphorusSensor_getvalue(int *value);
+queue_t PhosphorusSensor_getvalue(int *value);
 
 
 

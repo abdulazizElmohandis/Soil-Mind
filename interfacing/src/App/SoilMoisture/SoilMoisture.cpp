@@ -38,43 +38,45 @@ static void Debug_PrintQueue(const char *tag)
 #define Debug_PrintQueue(tag)
 #endif
 
-
-static void inq(int data)
+// ---------- Enqueue: overwrite oldest when full ----------
+static void inq(uint8_t data)
 {
-        if (in == Moisture_QUEUE_SIZE)
-        {
-            in = 0;
-        }
-        else
-        {
-            ;
-        }
-        Soil_Moisture_Queue[in++] = data;
+    // If full, discard oldest by advancing out
+    if (count >= Moisture_QUEUE_SIZE)
+    {
+        out = (uint8_t)((out + 1) % Moisture_QUEUE_SIZE);
+        // count stays at max (full)
+        count = Moisture_QUEUE_SIZE;
+    }
+    else
+    {
         count++;
+    }
+
+    Soil_Moisture_Queue[in] = data;
+    in = (uint8_t)((in + 1) % Moisture_QUEUE_SIZE);
 }
 
+// ---------- Dequeue ----------
 static queue_t deq(uint8_t *data)
 {
-    queue_t status = queue_ok;
-    if (out == Moisture_QUEUE_SIZE)
+    if (data == NULL)
     {
-        out = 0;
+        // If you have queue_error in your enum, return it.
+        // Otherwise return queue_empty.
+        return queue_empty;
     }
-    else
+
+    if (count == 0)
     {
-        ;
+        return queue_empty;
     }
-    if ((in == out) && (count == 0))
-    {
-        status = queue_empty;
-    }
-    else
-    {
-        *(data) = Soil_Moisture_Queue[out++];
-        status = queue_ok;
-        count--;
-    }
-    return status;
+
+    *data = Soil_Moisture_Queue[out];
+    out = (uint8_t)((out + 1) % Moisture_QUEUE_SIZE);
+    count--;
+
+    return queue_ok;
 }
 
 static SoilMoisture_t defaultSoilMoistureConfig = {
@@ -103,6 +105,11 @@ void SoilMoisture_main(void)
     rawValue = constrain(rawValue, lo, hi);
     // Convert to 0..100 with correct direction
     int moisture;
+    if (dry == wet)
+    {
+        DEBUG_PRINTLN("Soil moisture calibration error: DRY_VALUE == WET_VALUE");
+        return;
+    }
     if (dry > wet) {
     // dry -> 0, wet -> 100
     moisture = (int)(( (long)(dry - rawValue) * 100L ) / (long)(dry - wet));
@@ -121,14 +128,14 @@ void SoilMoisture_main(void)
 
 #endif
 }
-void SoilMoisture_getMoisture(uint8_t *moisture)
+queue_t SoilMoisture_getMoisture(uint8_t *moisture)
 {
 #if SOILMOISTURE_ENABLED == STD_ON
-    if (deq(moisture) == queue_empty)
-    {
-        *moisture = 0; // Indicate that the queue is empty
-    }
-    Debug_PrintQueue("AFTER INQ");
+    return deq(moisture);
+    Debug_PrintQueue("AFTER DEQ");
 
+#else
+    (void)moisture;
+    return queue_empty;
 #endif
 }

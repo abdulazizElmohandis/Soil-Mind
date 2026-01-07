@@ -3,15 +3,8 @@
 #include <freertos/task.h>
 #include "src/Hal/WIFI/wifi.h"
 #include "src/App/MQTT_APP/mqtt_app.h"
-#include "src/App/SoilMoisture/SoilMoisture.h"
-#include "src/App/PotassiumSensor/Potassium_Sensor.h"
-#include "src/App/NitrogenSensor/Nitrogen_Sensor.h"
-#include "src/App/PhosphorusSensor/Phosphorus_Sensor.h"
-#include "src/App/PHSensor/PH_Sensor.h"
-
-
-#include "src/App/DHT/DHT11.h"
-#include "src/App/ML/ML.h"
+#include "src/Hal/Pump/Pump.h"
+#include "src/APP_Cfg.h"
 
 // ============================================================================
 // APP TASK CONFIGURATION
@@ -24,9 +17,15 @@
 // RTOS task handles
 static TaskHandle_t appTaskHandle  = NULL;
 static TaskHandle_t mqttTaskHandle = NULL;
-static TaskHandle_t mlTaskHandle   = NULL;
 
 
+Pump_t pumpConfig = {
+    .pwmConfig = {
+      .channel = PUMP_PIN,
+      .frequency = PUMP_PWM_FREQUENCY,
+      .resolution = PUMP_PWM_RESOLUTION
+    }
+  };
 // ============================================================================
 // APP TASK FUNCTION
 // ============================================================================
@@ -67,37 +66,8 @@ static void apptask_400ms(void* parameter)
 
     for(;;)
     {
-        // Call sensor mains
-        SoilMoisture_main();
-        DHT11_main();
-        PotassiumSensor_main();
-        NitrogenSensor_main();
-        PhosphorusSensor_main();
-        PHSensor_main();
-        
         // Call MQTT main
         mqtt_main();
-
-        // Delay for next iteration
-        vTaskDelayUntil(&xLastWakeTime, xFrequency);
-    }
-}
-
-
-// ============================================================================
-// ML TASK FUNCTION (30-second interval)
-// ============================================================================
-static void mlTask30s(void* parameter)
-{
-    Serial.println("mlTask30s started on core: " + String(xPortGetCoreID()));
-
-    TickType_t xLastWakeTime = xTaskGetTickCount();
-    const TickType_t xFrequency = pdMS_TO_TICKS(30000); // 30 seconds
-
-    for(;;)
-    {
-        // Process ML inference and decision
-        ML_ProcessDecision();
 
         // Delay for next iteration
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
@@ -110,20 +80,14 @@ static void mlTask30s(void* parameter)
 void setup() {
   Serial.begin(115200);
   delay(1000);
-  // TODO: Add your application initialization here
+  
+  Serial.println("=== NodeB Actuator Controller Starting ===");
 
-  // Initialize sensors
-  SoilMoisture_Init();
-  DHT11_init();
-  PotassiumSensor_init();
-  NitrogenSensor_init();
-  PhosphorusSensor_init();
-  PHSensor_init();
-
-  // // Initialize ML model
-  if (!ML_Init()) {
-    Serial.println("ERROR: Failed to initialize ML model!");
-  }
+  // Initialize Pump
+#if PUMP_ENABLED == STD_ON
+  Pump_Init(&pumpConfig);
+  Serial.println("Pump initialized");
+#endif
 
   // Initialize MQTT APP
   MQTT_APP_Setup();
@@ -164,43 +128,23 @@ void setup() {
     Serial.println("apptask_400ms created successfully on Core 1");
   }
 
-  // // Create mlTask30s on Core 1
-  Serial.println("Creating mlTask30s...");
-  taskCreated = xTaskCreatePinnedToCore(
-    mlTask30s,                 // Task function
-    "mlTask30s",               // Task name
-    APP_TASK_STACK_SIZE,       // Stack size
-    NULL,                      // Parameters
-    1,                         // Priority (lowest)
-    &mlTaskHandle,             // Task handle
-    1                          // Core 1
-  );
-
-  if (taskCreated != pdPASS) {
-    Serial.println("ERROR: Failed to create mlTask30s!");
-  } else {
-    Serial.println("mlTask30s created successfully on Core 1");
-  }
+  Serial.println("=== NodeB Setup Complete ===");
 }
 
 // ============================================================================
 // MAIN LOOP
 // ============================================================================
 void loop() {
-  // TODO: Add your application main loop here
-  
-  // Uncomment to test MQTT (requires MQTTTest.h to be included above)
-
-  // MQTT RTOS Test runs automatically in background task
-  // No need to call MQTTTest_Loop() anymore
+  // MQTT RTOS runs automatically in background task
+  // No need to call mqtt_main() anymore
 
   // Add a small delay to prevent busy waiting
   // delay(1000);
 
-  // // Optional: Add periodic status output or other main loop tasks
+  // Optional: Add periodic status output or other main loop tasks
   // static unsigned long lastStatusTime = 0;
   // if (millis() - lastStatusTime >= 10000) { // Every 10 seconds
-  //   Serial.println("Main loop: MQTT RTOS test running in background...");
+  //   Serial.println("Main loop: NodeB running in background...");
   //   lastStatusTime = millis();
   // }
 }

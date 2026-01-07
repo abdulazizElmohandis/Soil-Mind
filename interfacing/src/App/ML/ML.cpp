@@ -65,6 +65,14 @@ bool ML_Init() {
     printTensor(input,  "input0");
     printTensor(output, "output0");
 
+    if (input->type != kTfLiteInt8 || output->type != kTfLiteInt8){
+        Serial.printf("[ML ERROR] Unexpected tensor types. input=%d output=%d\n",
+                    (int)input->type, (int)output->type);
+        return false; // or handle as your ML_Init returns
+    }
+
+
+
     modelReady = true;
 
     // Initialize history
@@ -103,9 +111,21 @@ float ML_RunInference() {
     }
 
     // Copy the scaled features to the input tensor
-    for (int i = 0; i < NUM_FEATURES; i++) {
-        input->data.f[i] = scaled[i];
+    // Quantize float features into int8 input tensor
+    for (int i = 0; i < NUM_FEATURES; i++)
+    {
+        float x = scaled[i];
+
+        // q = round(x / scale) + zero_point
+        int32_t q = (int32_t)lrintf(x / input->params.scale) + input->params.zero_point;
+
+        // Clamp to int8 range
+        if (q < -128) q = -128;
+        if (q >  127) q =  127;
+
+        input->data.int8[i] = (int8_t)q;
     }
+
 
     // Run inference
     TfLiteStatus invoke_status = interpreter->Invoke();
@@ -115,10 +135,13 @@ float ML_RunInference() {
     }
 
     // Get the output probability
-    float probability = output->data.f[0];
+    // Dequantize int8 output tensor into float probability
+    int8_t yq = output->data.int8[0];
+    float probability = ((int32_t)yq - output->params.zero_point) * output->params.scale;
 
-    Serial.printf("[ML] Inference result: %.4f\n", probability);
+    Serial.printf("[ML] Inference result: %.6f (yq=%d)\n", probability, (int)yq);
     return probability;
+
 }
 
 Decision_t ML_GetDecision(float probability) {
@@ -140,12 +163,11 @@ bool ML_GetSensorData(float *temperature, float *humidity, uint8_t *soilMoisture
     if (SoilMoisture_getMoisture(soilMoisture) != queue_ok) {
         ok = false;
     }
-
-    if (DHT11_GetTemperature(temperature) != queue_ok) {
+    if (DHT11_GetTemperature(temperature) != queue_ok) {   // assume bool return
         ok = false;
     }
 
-    if (DHT11_GetHumidity(humidity) != queue_ok) {
+    if (DHT11_GetHumidity(humidity)!= queue_ok) {
         ok = false;
     }
 
@@ -164,7 +186,7 @@ void ML_UpdateHistory() {
 
         history.addReading(temperature, scaledMoisture);
 
-        Serial.printf("[ML] History updated - Temp: %.1f, Moisture: %.0f (scaled: %.1f)\n",
+        Serial.printf("[ML] History updated - Temp: %.1f, Moisture: %u (scaled: %.1f)\n",
                      temperature, soilMoisture, scaledMoisture);
     } else {
         Serial.println("[ML] No sensor data available for history update");

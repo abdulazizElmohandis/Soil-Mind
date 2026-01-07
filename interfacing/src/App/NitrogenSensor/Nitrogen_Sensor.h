@@ -20,7 +20,7 @@ void NitrogenSensor_init(void);
 void NitrogenSensor_main(void);
 
 
-void NitrogenSensor_getvalue(int *value);
+queue_t NitrogenSensor_getvalue(int *value);
 
 
 

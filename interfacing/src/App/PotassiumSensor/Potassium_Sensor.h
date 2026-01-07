@@ -20,7 +20,7 @@ void PotassiumSensor_init(void);
 void PotassiumSensor_main(void);
 
 
-void PotassiumSensor_getvalue(int *value);
+queue_t PotassiumSensor_getvalue(int *value);
 
 
 

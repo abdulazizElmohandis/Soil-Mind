@@ -18,8 +18,8 @@ typedef struct
 
 void DHT11_init(void);
 void DHT11_main(void);
-void DHT11_GetTemperature(float *temperature);
-void DHT11_GetHumidity(float *humidity);
+queue_t DHT11_GetTemperature(float *temperature);
+queue_t DHT11_GetHumidity(float *humidity);
 
 
 

@@ -2,52 +2,72 @@
 #include "../../APP_Cfg.h"
 #include "../../Hal/ADC/ADC.h"
 
-static uint8_t NitrogenValue[Nitrogen_QUEUE_SIZE];
+static int NitrogenValue[Nitrogen_QUEUE_SIZE];
 static uint8_t inN;
 static uint8_t outN;
 static uint8_t countN;
 
 #if Nitrogen_DEBUG == STD_ON
 #define DEBUG_PRINTLN(var) Serial.println(var)
+static void Debug_PrintQueueN(const char *tag)
+{
+    Serial.print("[QUEUE] ");
+    Serial.print(tag);
+    Serial.print(" | in=");
+    Serial.print(inN);
+    Serial.print(" out=");
+    Serial.print(outN);
+    Serial.print(" count=");
+    Serial.print(countN);
+    Serial.print(" | data: ");
+
+    for (uint8_t i = 0; i < Nitrogen_QUEUE_SIZE; i++)
+    {
+        Serial.print(NitrogenValue[i]);
+        Serial.print(" ");
+    }
+    Serial.println();
+}
 #else
 #define DEBUG_PRINTLN(var)
+#define Debug_PrintQueueN(tag)
 #endif
+
 static void inqN(int data)
 {
-    if (inN == Nitrogen_QUEUE_SIZE)
+    // If full, overwrite oldest by advancing out
+    if (countN >= Nitrogen_QUEUE_SIZE)
     {
-        inN = 0;
+        outN = (uint8_t)((outN + 1) % Nitrogen_QUEUE_SIZE);
+        // count stays at max (full)
+        countN = Nitrogen_QUEUE_SIZE;
     }
     else
     {
-        ;
+        countN++;
     }
-    NitrogenValue[inN++] = data;
-    countN++;
+
+    NitrogenValue[inN] = data;
+    inN = (uint8_t)((inN + 1) % Nitrogen_QUEUE_SIZE);
 }
 
 static queue_t deqN(int *data)
 {
-    queue_t status = queue_ok;
-    if (outN == Nitrogen_QUEUE_SIZE)
+    if (data == NULL)
     {
-        outN = 0;
+        return queue_empty;
     }
-    else
+
+    if (countN == 0)
     {
-        ;
+        return queue_empty;
     }
-    if ((inN == outN) && (countN == 0))
-    {
-        status = queue_empty;
-    }
-    else
-    {
-        *(data) = NitrogenValue[outN++];
-        status = queue_ok;
-        countN--;
-    }
-    return status;
+
+    *data = NitrogenValue[outN];
+    outN = (uint8_t)((outN + 1) % Nitrogen_QUEUE_SIZE);
+    countN--;
+
+    return queue_ok;
 }
 
 static Nitrogen_t defaultNitrogenConfig = {
@@ -70,15 +90,18 @@ void NitrogenSensor_main(void)
     int nitrogenValue = map(adcValue, Zero, ADC_MAX, Zero, NITROGEN_MAX); 
     DEBUG_PRINTLN("Nitrogen Value (mg/kg): " + String(nitrogenValue));
     inqN(nitrogenValue);
+    Debug_PrintQueueN("AFTER INQ");
     #endif
 }
 
-void NitrogenSensor_getvalue(int *value)
+queue_t NitrogenSensor_getvalue(int *value)
 {
-    #if Nitrogen_ENABLED == STD_ON
-    if (deqN(value) == queue_empty)
-    {
-        *value = 0;
-    }
-    #endif
+#if Nitrogen_ENABLED == STD_ON
+    queue_t status = deqN(value);
+    Debug_PrintQueueN("AFTER DEQ");
+    return status;
+#else
+    (void)value;
+    return queue_empty;
+#endif
 }

@@ -11,86 +11,121 @@ static uint8_t outH;
 static uint8_t countH;
 #if DHT11_DEBUG == STD_ON
 #define DEBUG_PRINTLN(var) Serial.println(var)
+static void Debug_PrintQueueT(const char *tag)
+{
+    Serial.print("[QUEUE] ");
+    Serial.print(tag);
+    Serial.print(" | in=");
+    Serial.print(inT);
+    Serial.print(" out=");
+    Serial.print(outT);
+    Serial.print(" count=");
+    Serial.print(countT);
+    Serial.print(" | data: ");
+
+    for (uint8_t i = 0; i < Temperature_QUEUE_SIZE; i++)
+    {
+        Serial.print(Temperature[i]);
+        Serial.print(" ");
+    }
+    Serial.println();
+}
+static void Debug_PrintQueueH(const char *tag)
+{
+    Serial.print("[QUEUE] ");
+    Serial.print(tag);
+    Serial.print(" | in=");
+    Serial.print(inH);
+    Serial.print(" out=");
+    Serial.print(outH);
+    Serial.print(" count=");
+    Serial.print(countH);
+    Serial.print(" | data: ");
+
+    for (uint8_t i = 0; i < Humidity_QUEUE_SIZE; i++)
+    {
+        Serial.print(Humidity[i]);
+        Serial.print(" ");
+    }
+    Serial.println();
+}
 #else
 #define DEBUG_PRINTLN(var)
+#define Debug_PrintQueueT(tag)
+#define Debug_PrintQueueH(tag)
 #endif
 static void inqT(float data)
 {
-        if (inT == Temperature_QUEUE_SIZE)
-        {
-            inT = 0;
-        }
-        else
-        {
-            ;
-        }
-        Temperature[inT++] = data;
+    // If full, overwrite oldest by advancing out
+    if (countT >= Temperature_QUEUE_SIZE)
+    {
+        outT = (uint8_t)((outT + 1) % Temperature_QUEUE_SIZE);
+        // count stays at max (full)
+        countT = Temperature_QUEUE_SIZE;
+    }
+    else
+    {
         countT++;
+    }
+
+    Temperature[inT] = data;
+    inT = (uint8_t)((inT + 1) % Temperature_QUEUE_SIZE);
 }
 
 static queue_t deqT(float *data)
 {
-    queue_t status = queue_ok;
-    if (outT == Temperature_QUEUE_SIZE)
+    if (data == NULL)
     {
-        outT = 0;
+        return queue_empty;
     }
-    else
+
+    if (countT == 0)
     {
-        ;
+        return queue_empty;
     }
-    if ((inT == outT) && (countT == 0))
-    {
-        status = queue_empty;
-    }
-    else
-    {
-        *(data) = Temperature[outT++];
-        status = queue_ok;
-        countT--;
-    }
-    return status;
+
+    *data = Temperature[outT];
+    outT = (uint8_t)((outT + 1) % Temperature_QUEUE_SIZE);
+    countT--;
+
+    return queue_ok;
 }
 
 static void inqH(float data)
 {
-    if (countH < Humidity_QUEUE_SIZE)
+    // If full, overwrite oldest by advancing out
+    if (countH >= Humidity_QUEUE_SIZE)
     {
-        if (inH == Humidity_QUEUE_SIZE)
-        {
-            inH = 0;
-        }
-        else
-        {
-            ;
-        }
-        Humidity[inH++] = data;
+        outH = (uint8_t)((outH + 1) % Humidity_QUEUE_SIZE);
+        // count stays at max (full)
+        countH = Humidity_QUEUE_SIZE;
+    }
+    else
+    {
         countH++;
     }
+
+    Humidity[inH] = data;
+    inH = (uint8_t)((inH + 1) % Humidity_QUEUE_SIZE);
 }
 
 static queue_t deqH(float *data)
 {
-    queue_t status = queue_ok;
-    if (outH == Humidity_QUEUE_SIZE)
+    if (data == NULL)
     {
-        outH = 0;
+        return queue_empty;
     }
-    else
+
+    if (countH == 0)
     {
-        ;
+        return queue_empty;
     }
-    if ((inH == outH) && (countH == 0))
-    {
-        status = queue_empty;
-    }
-    else
-    {
-        *(data) = Humidity[outH++];
-        status = queue_ok;
-        countH--;
-    }
-    return status;
+
+    *data = Humidity[outH];
+    outH = (uint8_t)((outH + 1) % Humidity_QUEUE_SIZE);
+    countH--;
+
+    return queue_ok;
 }
 
 static DHT11Cfg_t DHT11_Sensors[MAX_SENSORS_DHT] = {
@@ -132,33 +167,38 @@ void DHT11_main(void)
     else
     {
         inqT(temperature);
+        Debug_PrintQueueT("AFTER INQ T");
         inqH(humidity);
+        Debug_PrintQueueH("AFTER INQ H");
         DEBUG_PRINTLN("[DHT11] Sensor read SUCCESSFUL!");
     }
 
 #endif
 }
 
-void DHT11_GetTemperature(float *temperature)
+queue_t DHT11_GetTemperature(float *temperature)
 {
 #if DHT11_ENABLED == STD_ON
-    if (deqT(temperature) == queue_empty)
-    {   
-        *temperature = 0.0f; // Indicate that the queue is empty
-    }
+    queue_t status = deqT(temperature);
+    Debug_PrintQueueT("AFTER DEQ T");
     DEBUG_PRINTLN("[DHT11] getting Temp = ");
     DEBUG_PRINTLN(*temperature);
+    return status;
+#else
+    (void)temperature;
+    return queue_empty;
 #endif
 }
-void DHT11_GetHumidity(float *humidity)
+queue_t DHT11_GetHumidity(float *humidity)
 {
     #if DHT11_ENABLED == STD_ON
-    if (deqH(humidity) == queue_empty)
-    {
-        *humidity = 0.0f; // Indicate that the queue is empty
-    }
-
-    DEBUG_PRINTLN("[DHT11] getting Temp = ");
+    queue_t status = deqH(humidity);
+    Debug_PrintQueueH("AFTER DEQ H");
+    DEBUG_PRINTLN("[DHT11] getting Humidity = ");
     DEBUG_PRINTLN(*humidity);
+    return status;
+#else
+    (void)humidity;
+    return queue_empty;
 #endif
 }

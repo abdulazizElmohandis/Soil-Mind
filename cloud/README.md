@@ -21,21 +21,27 @@ principles, enabling seamless operation with real IoT devices (ESP32) or softwar
 
 ## System Architecture
 
-```
-Sensor Node (Node A)
-  └── Telemetry → MQTT
-          ↓
-     Mosquitto Broker
-          ↓
-        Telegraf
-          ↓
-        InfluxDB
-          ↓
-        Grafana
-          ↑
-     Control API (FastAPI)
-          ↑
-Actuator Node (Node B)
+```mermaid
+flowchart TD
+    A["Sensor Node (Node A)<br/>Soil Moisture<br/>Temperature<br/>Humidity - pH - NPK"]
+    B["MQTT Broker<br/>Mosquitto"]
+    C["Telegraf<br/>MQTT Consumer<br/>Parsing and Tagging"]
+    D["InfluxDB<br/>Time-Series Storage"]
+    E["ML Inference Layer<br/>Decision Model<br/>Health Model"]
+    F["Control Decision"]
+    G["Alert Generation<br/>Email Warning"]
+    H["Actuator Node (Node B)<br/>Pump - Relay"]
+    I["Notification System<br/>SMTP - Grafana"]
+
+    A -->|"MQTT Telemetry (JSON)"| B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    E --> G
+    F -->|"MQTT Control"| H
+    G -->|"Email"| I
+
 ```
 
 ---

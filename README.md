@@ -2,7 +2,8 @@
 
 An IoT-based plant health monitoring and automated irrigation system using TinyML, ESP32 microcontroller, and cloud-deployed data pipeline.
 
-![System Architecture](docs/dashboard_layput.jpeg "Architecture Diagram")
+![M](https://github.com/user-attachments/assets/64eb0611-8741-499e-9a67-7166ec35b8ef)
+
 
 ## Overview
 
